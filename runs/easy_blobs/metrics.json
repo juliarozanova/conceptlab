@@ -1,0 +1,188 @@
+{
+  "val_acc": 1.0,
+  "train_acc": 1.0,
+  "methods": {
+    "probe_skyline": {
+      "name": "probe_skyline",
+      "recovery": {
+        "mean_matched_cosine": 0.9968718111967844,
+        "coverage": 1.0,
+        "redundancy": 1.0,
+        "regime": "compact",
+        "n_discovered": 6,
+        "n_true": 6,
+        "ring_coverage": null
+      },
+      "sufficiency": 1.0
+    },
+    "pca": {
+      "name": "pca",
+      "recovery": {
+        "mean_matched_cosine": 0.6418038712817027,
+        "coverage": 0.2222222222222222,
+        "redundancy": 1.0,
+        "regime": "partial",
+        "n_discovered": 6,
+        "n_true": 6,
+        "ring_coverage": null
+      },
+      "sufficiency": 1.0
+    },
+    "ica": {
+      "name": "ica",
+      "recovery": {
+        "mean_matched_cosine": 0.9997322262980498,
+        "coverage": 1.0,
+        "redundancy": 1.0,
+        "regime": "compact",
+        "n_discovered": 6,
+        "n_true": 6,
+        "ring_coverage": null
+      },
+      "sufficiency": 1.0
+    },
+    "relu_sae": {
+      "name": "relu_sae",
+      "recovery": {
+        "mean_matched_cosine": 0.8195348466281627,
+        "coverage": 0.7777777777777778,
+        "redundancy": 1.111111111111111,
+        "regime": "partial",
+        "n_discovered": 24,
+        "n_true": 6,
+        "ring_coverage": null
+      },
+      "sufficiency": 1.0
+    },
+    "topk_sae": {
+      "name": "topk_sae",
+      "recovery": {
+        "mean_matched_cosine": 0.49575758642478324,
+        "coverage": 0.16666666666666666,
+        "redundancy": 10.666666666666666,
+        "regime": "partial",
+        "n_discovered": 24,
+        "n_true": 6,
+        "ring_coverage": null
+      },
+      "sufficiency": 0.9925925925925926
+    },
+    "ablation": {
+      "name": "ablation",
+      "faithfulness": {
+        "spearman": 0.7904761904761904,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    },
+    "patching": {
+      "name": "patching",
+      "faithfulness": {
+        "spearman": 0.7523809523809524,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    },
+    "integrated_gradients": {
+      "name": "integrated_gradients",
+      "faithfulness": {
+        "spearman": 0.8095238095238096,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    },
+    "label_probe": {
+      "name": "label_probe",
+      "faithfulness": {
+        "spearman": 0.6000000000000001,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    }
+  },
+  "name": "easy_blobs",
+  "config": {
+    "name": "easy_blobs",
+    "spec": {
+      "dim": 32,
+      "geometry": "orthogonal",
+      "noise": 0.1,
+      "groups": [
+        {
+          "kind": "point",
+          "n": 6,
+          "p_active": 0.5
+        }
+      ],
+      "label": "AND(z0, z1)"
+    },
+    "model": {
+      "kind": "mlp",
+      "epochs": 60,
+      "lr": 0.003,
+      "model_kwargs": {
+        "hidden": 64,
+        "n_layers": 2
+      }
+    },
+    "methods": [
+      "probe_skyline",
+      "pca",
+      "ica",
+      "relu_sae",
+      "topk_sae",
+      "ablation",
+      "patching",
+      "integrated_gradients",
+      "label_probe"
+    ],
+    "method_kwargs": {
+      "relu_sae": {
+        "overcomplete": 4.0,
+        "l1": 0.003,
+        "epochs": 300
+      },
+      "topk_sae": {
+        "overcomplete": 4.0,
+        "k": 1,
+        "epochs": 300
+      }
+    },
+    "n_train": 6000,
+    "n_val": 1500,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "min_accuracy": 0.95,
+    "interaction_concepts": [
+      0,
+      1
+    ]
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "runtime_s": 33.1,
+  "gt_importance": [
+    0.4996654987335205,
+    0.5013293623924255,
+    2.7063131255999906e-06,
+    1.8269272459292552e-06,
+    3.3931175948964665e-06,
+    1.5866937701503048e-06
+  ],
+  "concept_names": [
+    "z0",
+    "z1",
+    "z2",
+    "z3",
+    "z4",
+    "z5"
+  ],
+  "label": "AND(z0, z1)",
+  "is_sequence": false
+}

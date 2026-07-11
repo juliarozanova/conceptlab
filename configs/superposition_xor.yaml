@@ -1,0 +1,31 @@
+# Superposition + interaction: 32 concepts packed into 24 dims (random,
+# near-orthogonal anchors) with an XOR-of-AND label. Expectations:
+#   * SAEs / ICA should beat PCA on concept recovery in superposition.
+#   * Linear importance (label_probe) should mis-rank the XOR-coupled concepts
+#     z0/z1, while causal methods (ablation/patching) and IG detect them.
+name: superposition_xor
+
+spec:
+  dim: 24
+  geometry: random          # random unit anchors -> superposition when n > dim
+  noise: 0.05
+  groups:
+    - {kind: point, n: 32, p_active: 0.5}
+  label: "XOR(AND(z0, z1), z2)"
+
+model:
+  kind: mlp
+  epochs: 120
+  lr: 0.002
+  model_kwargs: {hidden: 256, n_layers: 3}
+
+n_train: 20000
+n_val: 4000
+seeds: [0, 1, 2]
+min_accuracy: 0.90
+interaction_concepts: [0, 1]
+
+methods: [probe_skyline, pca, ica, relu_sae, topk_sae, ablation, patching, integrated_gradients, label_probe]
+method_kwargs:
+  relu_sae: {overcomplete: 4.0, l1: 0.002, epochs: 400}
+  topk_sae: {overcomplete: 4.0, k: 2, epochs: 400}

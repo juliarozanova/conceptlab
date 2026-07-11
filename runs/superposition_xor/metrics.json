@@ -1,0 +1,240 @@
+{
+  "val_acc": 0.9362500111262003,
+  "train_acc": 1.0,
+  "methods": {
+    "probe_skyline": {
+      "name": "probe_skyline",
+      "recovery": {
+        "mean_matched_cosine": 0.5960089371796428,
+        "coverage": 0.14583333333333334,
+        "redundancy": 1.0,
+        "regime": "partial",
+        "n_discovered": 32,
+        "n_true": 32,
+        "ring_coverage": null
+      },
+      "sufficiency": 0.8711111111111111
+    },
+    "pca": {
+      "name": "pca",
+      "recovery": {
+        "mean_matched_cosine": 0.40632240197299946,
+        "coverage": 0.10416666666666667,
+        "redundancy": 1.0,
+        "regime": "partial",
+        "n_discovered": 24,
+        "n_true": 32,
+        "ring_coverage": null
+      },
+      "sufficiency": 0.7055555555555556
+    },
+    "ica": {
+      "name": "ica",
+      "recovery": {
+        "mean_matched_cosine": 0.9497707346085033,
+        "coverage": 0.7604166666666666,
+        "redundancy": 1.0,
+        "regime": "compact",
+        "n_discovered": 24,
+        "n_true": 32,
+        "ring_coverage": null
+      },
+      "sufficiency": 0.7038888888888889
+    },
+    "relu_sae": {
+      "name": "relu_sae",
+      "recovery": {
+        "mean_matched_cosine": 0.5727821289054682,
+        "coverage": 0.052083333333333336,
+        "redundancy": 0.6666666666666666,
+        "regime": "partial",
+        "n_discovered": 128,
+        "n_true": 32,
+        "ring_coverage": null
+      },
+      "sufficiency": 0.7077777777777777
+    },
+    "topk_sae": {
+      "name": "topk_sae",
+      "recovery": {
+        "mean_matched_cosine": 0.6147063787071673,
+        "coverage": 0.11458333333333333,
+        "redundancy": 1.4444444444444444,
+        "regime": "partial",
+        "n_discovered": 128,
+        "n_true": 32,
+        "ring_coverage": null
+      },
+      "sufficiency": 0.7055555555555556
+    },
+    "ablation": {
+      "name": "ablation",
+      "faithfulness": {
+        "spearman": 0.7475562072336266,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    },
+    "patching": {
+      "name": "patching",
+      "faithfulness": {
+        "spearman": 0.8767106549364613,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    },
+    "integrated_gradients": {
+      "name": "integrated_gradients",
+      "faithfulness": {
+        "spearman": 0.7460899315738025,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    },
+    "label_probe": {
+      "name": "label_probe",
+      "faithfulness": {
+        "spearman": 0.035312805474095786,
+        "detects_interaction": true
+      },
+      "sufficiency": null
+    }
+  },
+  "name": "superposition_xor",
+  "config": {
+    "name": "superposition_xor",
+    "spec": {
+      "dim": 24,
+      "geometry": "random",
+      "noise": 0.05,
+      "groups": [
+        {
+          "kind": "point",
+          "n": 32,
+          "p_active": 0.5
+        }
+      ],
+      "label": "XOR(AND(z0, z1), z2)"
+    },
+    "model": {
+      "kind": "mlp",
+      "epochs": 120,
+      "lr": 0.002,
+      "model_kwargs": {
+        "hidden": 256,
+        "n_layers": 3
+      }
+    },
+    "methods": [
+      "probe_skyline",
+      "pca",
+      "ica",
+      "relu_sae",
+      "topk_sae",
+      "ablation",
+      "patching",
+      "integrated_gradients",
+      "label_probe"
+    ],
+    "method_kwargs": {
+      "relu_sae": {
+        "overcomplete": 4.0,
+        "l1": 0.002,
+        "epochs": 400
+      },
+      "topk_sae": {
+        "overcomplete": 4.0,
+        "k": 2,
+        "epochs": 400
+      }
+    },
+    "n_train": 20000,
+    "n_val": 4000,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "min_accuracy": 0.9,
+    "interaction_concepts": [
+      0,
+      1
+    ]
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "runtime_s": 144.5,
+  "gt_importance": [
+    0.5091274976730347,
+    0.4449453055858612,
+    0.8621013760566711,
+    0.0432274155318737,
+    0.04459141939878464,
+    0.07401064783334732,
+    0.057140834629535675,
+    0.04387769103050232,
+    0.0468856543302536,
+    0.049290966242551804,
+    0.05345115810632706,
+    0.046777378767728806,
+    0.04888882488012314,
+    0.05370422452688217,
+    0.078496553003788,
+    0.06136045977473259,
+    0.05084172636270523,
+    0.05382943153381348,
+    0.05473646894097328,
+    0.07170833647251129,
+    0.04664679989218712,
+    0.05037161707878113,
+    0.055621251463890076,
+    0.07125929743051529,
+    0.05090523138642311,
+    0.053024254739284515,
+    0.06451243162155151,
+    0.07034897059202194,
+    0.05520376190543175,
+    0.05753345414996147,
+    0.05950573831796646,
+    0.08896498382091522
+  ],
+  "concept_names": [
+    "z0",
+    "z1",
+    "z2",
+    "z3",
+    "z4",
+    "z5",
+    "z6",
+    "z7",
+    "z8",
+    "z9",
+    "z10",
+    "z11",
+    "z12",
+    "z13",
+    "z14",
+    "z15",
+    "z16",
+    "z17",
+    "z18",
+    "z19",
+    "z20",
+    "z21",
+    "z22",
+    "z23",
+    "z24",
+    "z25",
+    "z26",
+    "z27",
+    "z28",
+    "z29",
+    "z30",
+    "z31"
+  ],
+  "label": "XOR(AND(z0, z1), z2)",
+  "is_sequence": false
+}

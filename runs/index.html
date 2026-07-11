@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>conceptlab · runs</title><style>
+:root { color-scheme: light dark; }
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0; padding: 32px; background: #f9f9f7; color: #0b0b0b; line-height: 1.5; }
+h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 32px 0 8px;
+  color: #52514e; border-bottom: 1px solid rgba(137,135,129,0.3); padding-bottom: 4px; }
+.sub { color: #898781; font-size: 13px; margin-bottom: 8px; }
+code { background: rgba(137,135,129,0.15); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.meta { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: #52514e; margin: 12px 0; }
+.meta b { color: #0b0b0b; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid rgba(137,135,129,0.2); }
+th { color: #898781; font-weight: 600; } td.name, th.name { text-align: left; }
+td.name { font-weight: 600; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.card-note { color: #898781; font-size: 12px; margin: 2px 0 0; }
+@media (prefers-color-scheme: dark) {
+  body { background: #0d0d0d; color: #fff; } h2 { color: #c3c2b7; }
+  .meta { color: #c3c2b7; } .meta b { color: #fff; } td.name { color: #fff; }
+}
+@media (max-width: 780px) { .grid2 { grid-template-columns: 1fr; } }
+.card { display:block; text-decoration:none; color:inherit; padding:16px 18px;
+  border:1px solid rgba(137,135,129,0.3); border-radius:10px; margin:10px 0; }
+.card:hover { border-color:#2a78d6; }
+.ct { font-weight:700; font-size:16px; } .cs { color:#898781; font-size:13px; margin:2px 0; }
+.cm { color:#52514e; font-size:13px; }
+@media (prefers-color-scheme: dark) { .cm { color:#c3c2b7; } }
+</style></head><body>
+<h1>conceptlab — runs</h1>
+<div class="sub">Cross-run comparison. Click a run for its full report.</div>
+<a class='card' href='circle_transformer/report.html'><div class='ct'>circle_transformer</div><div class='cs'>label <code>ANY(IN(ring, 2, 4)) & LAST(z0)</code></div><div class='cm'>val acc 1.000 &middot; best recovery 0.998 &middot; 9 methods</div></a>
+<a class='card' href='easy_blobs/report.html'><div class='ct'>easy_blobs</div><div class='cs'>label <code>AND(z0, z1)</code></div><div class='cm'>val acc 1.000 &middot; best recovery 1.000 &middot; 9 methods</div></a>
+<a class='card' href='superposition_xor/report.html'><div class='ct'>superposition_xor</div><div class='cs'>label <code>XOR(AND(z0, z1), z2)</code></div><div class='cm'>val acc 0.936 &middot; best recovery 0.950 &middot; 9 methods</div></a>
+</body></html>
