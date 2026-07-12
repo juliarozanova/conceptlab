@@ -1,0 +1,296 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>conceptlab · methodology</title>
+<style>
+:root { color-scheme: light dark; }
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0; padding: 32px; background: #f9f9f7; color: #0b0b0b; line-height: 1.6; }
+main { max-width: 860px; margin: 0 auto; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+h2 { font-size: 19px; margin: 40px 0 10px; color: #52514e;
+  border-bottom: 1px solid rgba(137,135,129,0.3); padding-bottom: 5px; }
+h3 { font-size: 15px; margin: 22px 0 6px; }
+.sub { color: #898781; font-size: 14px; margin-bottom: 14px; }
+code { background: rgba(137,135,129,0.15); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+a { color: #2a78d6; text-decoration: none; } a:hover { text-decoration: underline; }
+.nav { font-size: 14px; margin: 10px 0 26px; }
+.nav a { margin-right: 16px; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin: 10px 0; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(137,135,129,0.25); vertical-align: top; }
+th { color: #898781; font-weight: 600; }
+.flow { display: flex; gap: 10px; margin: 18px 0; flex-wrap: wrap; }
+.flow .box { flex: 1 1 200px; border: 1px solid rgba(137,135,129,0.35); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; }
+.flow .box b { display: block; margin-bottom: 4px; }
+.flow .arrow { align-self: center; color: #898781; font-size: 18px; }
+.callout { border-left: 3px solid #2a78d6; background: rgba(42,120,214,0.07);
+  padding: 10px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; }
+.warn { border-left-color: #eda100; background: rgba(237,161,0,0.08); }
+ul { padding-left: 22px; } li { margin: 3px 0; }
+.pro::before { content: "+ "; color: #008300; font-weight: 700; }
+.con::before { content: "− "; color: #e34948; font-weight: 700; }
+.pro, .con { list-style: none; margin-left: -18px; }
+dt { font-weight: 600; margin-top: 10px; } dd { margin: 2px 0 0 0; color: #52514e; font-size: 14px; }
+footer { margin-top: 48px; color: #898781; font-size: 13px;
+  border-top: 1px solid rgba(137,135,129,0.3); padding-top: 14px; }
+@media (prefers-color-scheme: dark) {
+  body { background: #0d0d0d; color: #fff; }
+  h2 { color: #c3c2b7; } dd { color: #c3c2b7; }
+  a { color: #3987e5; }
+}
+</style></head><body><main>
+
+<h1>conceptlab</h1>
+<div class="sub">A ground-truth benchmark for validating transformer interpretability methods —
+methodology, how to read the results, and what they do and don't tell us.</div>
+<div class="nav">
+  <a href="runs/index.html">📊 Live reports</a>
+  <a href="https://github.com/juliarozanova/conceptlab">Code on GitHub</a>
+</div>
+
+<h2>The problem</h2>
+<p>
+Interpretability research has a validation gap. When a sparse autoencoder reports that a
+language model represents "days of the week" as specific features, there is no way to check
+whether those are the features the model <em>actually</em> uses — the ground truth doesn't
+exist. Methods are typically judged by proxy signals (reconstruction loss, human ratings of
+feature interpretability, downstream steering effects), all of which can be satisfied by a
+method that is confidently wrong about the underlying computation.
+</p>
+<p>
+conceptlab inverts the problem: instead of asking whether a method's answer about a real
+model is right, we <strong>build tiny worlds where the right answer is known by construction</strong>,
+and check whether the method finds it. A method that fails here has no business being
+trusted on a frontier model. (The converse doesn't hold — more on that at the end.)
+</p>
+
+<h2>Methodology</h2>
+<div class="flow">
+  <div class="box"><b>1 · Ground truth (known)</b>
+  Concepts are planted as anchor directions in an embedding space R<sup>D</sup>. Samples are
+  built as <code>x = Σ zᵢ·anchorᵢ + noise</code> — overlapping Gaussian blobs. The label is a known
+  boolean composite, e.g. <code>y = (z₀ AND z₁) XOR z₂</code>.</div>
+  <div class="arrow">→</div>
+  <div class="box"><b>2 · Model (trained)</b>
+  A toy MLP or 1-layer transformer is trained to predict the label from the embeddings, and must
+  reach high accuracy before any method runs — otherwise there is nothing coherent to interpret.</div>
+  <div class="arrow">→</div>
+  <div class="box"><b>3 · Methods (under test)</b>
+  Each method sees only (model, data). It must (a) rediscover the planted concepts, and
+  (b) rank their importance for the label. Its answers are scored against layer 1.</div>
+</div>
+<p>
+The decisive advantage of synthetic data is <strong>causal ground-truth importance</strong>.
+To learn how much concept <code>z₂</code> really matters, we don't need any attribution method:
+we toggle <code>z₂</code> in the generator, rebuild the embedding with the same noise, run the
+model, and measure how much its output moves. Attribution methods are then graded against this
+intervention — the quantity they are supposed to estimate, computed exactly.
+</p>
+<p>
+Concept geometry is configurable, because geometry is where interesting failures live:
+independent orthogonal blobs (the easy case), <em>correlated</em> anchors at a chosen angle,
+<em>sparse superposition</em> (more concepts than dimensions, with rare concept firing — the
+regime the superposition hypothesis actually describes), and <em>circular manifolds</em> — an
+ordinal concept traced around a ring, mimicking the circular weekday/month geometry found in
+real LLMs. Blob noise is set high enough that the Gaussians genuinely overlap: no score in the
+current reports is saturated at 1.0, so differences between methods are always visible.
+</p>
+
+<h2>The metrics</h2>
+<dl>
+<dt>Recovery (matched cosine)</dt>
+<dd>Discovered directions are assigned to true anchors by Hungarian matching on cosine
+similarity; we report the mean matched cosine. 1.0 = the method's dictionary contains the
+planted concepts exactly.</dd>
+<dt>Coverage & redundancy → capture regime</dt>
+<dd>Coverage: fraction of true concepts that at least one discovered feature aligns with
+(cos&nbsp;&gt;&nbsp;0.7). Redundancy: how many features align with each covered concept. Together they
+classify the <em>capture regime</em>: <strong>compact</strong> (~1 feature per concept — the ideal),
+<strong>dilution</strong> (several partial features share a concept), <strong>shattering</strong>
+(features approach one-per-manifold-point), <strong>partial</strong> (concepts simply missed).</dd>
+<dt>Ring coverage</dt>
+<dd>For circular concepts: the fraction of the ring's angular bins that some discovered feature
+points into. A linear method finds the 2 plane axes (coverage 0.25); a diluting SAE tiles arcs
+all the way around.</dd>
+<dt>Importance faithfulness (Spearman ρ)</dt>
+<dd>Rank correlation between the method's per-concept importance and the causal ground truth
+from generator interventions. This is the metric that separates methods most sharply.</dd>
+<dt>Interaction detection</dt>
+<dd>Does the method assign non-trivial importance to <em>every</em> concept in an interacting
+group (e.g. both sides of an AND inside a XOR)? Linear methods characteristically fail this.</dd>
+<dt>Sufficiency</dt>
+<dd>Train a small probe from the method's discovered-concept coefficients to the label. High
+accuracy = the discovered set carries everything the label needs, even if individual features
+are imperfect.</dd>
+</dl>
+
+<h2>The methods, honestly</h2>
+
+<h3>Linear probe skyline (supervised)</h3>
+<p>Ridge-regresses the true concept coefficients from the embeddings — it is <em>given the
+answer</em> and asked to express it linearly. It is not a real method; it is the ceiling that
+defines what "good" means for everything below it, and a canary: if the skyline can't recover
+concepts, the harness (not a method) is broken.</p>
+<ul><li class="pro">Calibrates every other score</li>
+<li class="con">Needs ground-truth labels, so it cannot exist outside a benchmark</li></ul>
+
+<h3>PCA</h3>
+<p>Finds orthogonal directions of maximal variance.</p>
+<ul><li class="pro">Fast, deterministic, no hyperparameters</li>
+<li class="con">Variance is the wrong objective: when concepts fire with similar frequency and
+scale, the covariance is nearly isotropic across the concept subspace, and PCA's axes are an
+arbitrary rotation of the truth. It recovers the <em>subspace</em>, not the <em>basis</em></li>
+<li class="con">Hard-limited to D orthogonal directions — structurally cannot handle superposition</li></ul>
+
+<h3>ICA</h3>
+<p>Finds directions whose coefficients are statistically independent and non-Gaussian.</p>
+<ul><li class="pro">Near-perfect here — binary concept activations are exactly the independent,
+non-Gaussian sources ICA assumes</li>
+<li class="con">That is also the caveat: our generator <em>is</em> ICA's generative model. Its
+dominance measures assumption-match, not general superiority — real-model features are
+correlated and hierarchical, which breaks the independence assumption ICA needs</li></ul>
+
+<h3>Sparse autoencoders (ReLU+L1, TopK)</h3>
+<p>Learn an overcomplete dictionary that reconstructs the data under a sparsity penalty — the
+workhorse of current LLM interpretability, which is why they are the benchmark's main subject.</p>
+<ul><li class="pro">The only unsupervised method here that scales past D features — sparsity, not
+orthogonality, is its constraint, so superposition is its home turf (it beats PCA there)</li>
+<li class="pro">Failure modes are <em>informative</em> and reproduce published LLM phenomenology
+(splitting, dilution) on demand</li>
+<li class="con">Feature splitting: with a large dictionary, one true concept fragments into
+several near-duplicate atoms</li>
+<li class="con">Manifold blindness: atoms are linear directions, so a circular concept is
+covered by arcs — no single feature <em>is</em> the ring (the dilution regime)</li>
+<li class="con">Sensitive to L1/K/dictionary-size hyperparameters, and dead atoms must be
+filtered before interpreting anything</li></ul>
+
+<h3>Linear label probe (importance baseline)</h3>
+<p>Regresses the label on concept coefficients; importance = |weight|.</p>
+<ul><li class="pro">Cheap, and honest about what correlation alone can see</li>
+<li class="con">Blind to interactions by construction: under XOR each concept's
+<em>marginal</em> correlation with the label is exactly zero, so its weights collapse to
+noise — this is the benchmark's sharpest negative result</li></ul>
+
+<h3>Integrated gradients</h3>
+<p>Integrates the model's gradient along a path that scales a concept's component from absent
+to present; attribution = accumulated gradient × component.</p>
+<ul><li class="pro">Sees interactions (the path passes through regions where the AND partner is
+active), and satisfies completeness by construction</li>
+<li class="con">Requires gradients and a meaningful baseline point; path choice is a real
+degree of freedom — this implementation is deliberately the scaffold for prototyping
+"integrated conceptual sensitivity" variants against exact ground truth</li></ul>
+
+<h3>Ablation & activation patching</h3>
+<p>Project out (ablation) or replace with its dataset mean (patching) the component along a
+concept direction, and measure the change in the model's output.</p>
+<ul><li class="pro">Causal rather than correlational — the closest in-model analogue of the
+generator's own ground-truth intervention, and reliably the top faithfulness scorers</li>
+<li class="con">Interventions along non-orthogonal directions disturb neighbouring concepts
+(an issue precisely in superposition, where it matters most)</li>
+<li class="con">Ablating to zero can push activations off-distribution; mean-patching is the
+gentler variant, and their disagreement is itself a diagnostic</li></ul>
+
+<h2>Why the results look the way they do</h2>
+<p><strong>ICA ≈ 1.0 recovery, everywhere.</strong> Not because ICA is the best interpretability
+method, but because the toy world satisfies its assumptions exactly. Treat it as a second
+skyline: the best any assumption-matched linear method could do. The moment concepts become
+correlated (a config switch away), this advantage should evaporate — that's a planned
+follow-up experiment.</p>
+<p><strong>PCA lags even in the easy setting.</strong> All six concepts fire with p=0.5 at equal
+scale, so no direction in the concept subspace has privileged variance. PCA finds the right
+6-dimensional subspace but reports an arbitrary orthogonal rotation of it — respectable
+sufficiency (the subspace is intact), mediocre recovery (the basis is wrong). This is worth
+internalising: <em>a method can be useful for downstream prediction while being wrong about
+every individual concept.</em></p>
+<p><strong>In sparse superposition, the TopK SAE is the only unsupervised method that can win.</strong>
+The superposition experiment plants 32 concepts in 24 dimensions with sparse background firing
+(~5 concepts active per sample). PCA and ICA are structurally capped at 24 components, so at
+least 8 concepts are unrecoverable for them <em>no matter how good they are</em> — ICA still
+nails the directions it can express (high cosine) but its coverage tops out. The overcomplete
+TopK SAE has no such cap and recovers nearly the full set. This is the cleanest demonstration
+of the actual argument for SAEs: not that sparse coding is generically better, but that
+overcompleteness is the only way past the dimension limit.</p>
+<p><strong>ReLU+L1 lags TopK on recovery at every penalty setting we tried.</strong> The L1
+penalty taxes activation magnitude, which both shrinks coefficients and rewards atoms that
+mix several true concepts (one mixed atom fires less in total than the two clean atoms it
+replaces). TopK's hard constraint taxes nothing, so its atoms stay clean. This reproduces, in
+miniature, the motivation for the TopK/BatchTopK family in the SAE literature — and it means
+SAE benchmark results are substantially a property of the sparsity <em>mechanism</em>, not
+just of "SAEs" as a class.</p>
+<p><strong>The label probe's collapse on XOR (ρ ≈ 0.03) is the benchmark's sharpest result.</strong>
+Under <code>y = (z₀ AND z₁) XOR z₂</code>, flipping any single concept flips the label for some
+inputs — every concept is causally important — yet each concept's marginal correlation with the
+label is zero by symmetry. Correlational importance is structurally, not accidentally, blind
+here, while ablation/patching/IG (which go <em>through the model</em>) score 0.75–0.9. Any
+importance method proposed for real models should be required to pass this gate first.</p>
+<p><strong>SAE dilution on the ring is geometry, not a bug.</strong> A ring in a 2-plane cannot
+be written as a sparse non-negative combination of a few fixed directions; the reconstruction-
+optimal solution under sparsity pressure is a fan of unit atoms tiling the circle, each active
+for an arc. That is what the report's embedding-space panel shows, what ring-coverage ≫ 0.25
+quantifies, and what was observed in real LLMs (weekday circles in Llama). The toy result and
+the frontier-model result agreeing is the strongest evidence the benchmark measures something
+real.</p>
+<p><strong>ReLU+L1 and TopK dilute differently — the sparsity mechanism matters.</strong> In the
+circle experiment the two SAE variants are configured identically except for how sparsity is
+enforced, and they land in different regimes: the L1-penalised SAE stays roughly
+<em>compact</em> (a few ±axis-aligned atoms, ring coverage ~0.25–0.4) because L1 taxes total
+activation mass and lets two plane axes share the reconstruction, while TopK (k=2) — which
+forces <em>exactly</em> k atoms per sample and taxes nothing else — recruits a fan of dedicated
+arc atoms (ring coverage ~0.75, redundancy &gt; 2.5: <em>dilution</em>). The practical reading:
+which capture regime you observe in a real model is partly an artifact of your SAE's sparsity
+mechanism, not purely a property of the model being studied.</p>
+<p><strong>Why the causal methods agree with each other so closely.</strong> On these small
+models with near-orthogonal planted directions, ablation, patching, and IG estimate the same
+counterfactual and converge. Their divergence grows exactly where interpretability gets hard —
+non-orthogonal anchors, stronger superposition — which makes <em>disagreement between causal
+methods</em> a useful instability signal at scale, not just noise.</p>
+
+<h2>What transfers to real models — and what doesn't</h2>
+<div class="callout">
+<strong>Passing conceptlab is necessary, not sufficient.</strong> The benchmark is a filter for
+methods that fail even when everything is easy — linear planting, known concept count, IID
+samples, a model that provably learned the label. A method that aces it can still fail on a
+frontier model; a method that flunks it should not be trusted anywhere.
+</div>
+<p><strong>What transfers well: the failure modes.</strong> They are structural, so they scale.
+Correlational importance will stay blind to interactions in a 70B model for the same
+mathematical reason it is blind here. SAE atoms will stay linear, so curved concept manifolds
+will keep diluting. Variance will keep failing to align with semantics for PCA-style methods.
+The benchmark's job is to make these failure modes cheap to demonstrate and quantify.</p>
+<p><strong>What transfers poorly: the absolute numbers and the rankings among survivors.</strong>
+Real models differ in ways the toy world deliberately omits:</p>
+<ul>
+<li><em>Nonlinear feature embedding.</em> We plant concepts as fixed directions in the input
+space. Real features emerge across depth, can be nonlinearly composed, and may only be linear
+locally. Recovery scores here are upper bounds.</li>
+<li><em>Correlated, hierarchical concepts.</em> Real concepts co-occur ("Paris" and "France")
+and nest. ICA's win depends on independence; expect it to degrade first.</li>
+<li><em>Unknown concept count.</em> We can set the SAE dictionary relative to the true number of
+concepts. Real work must guess, and the splitting/dilution trade-off is governed by that guess.</li>
+<li><em>Distribution shift and off-manifold interventions.</em> Ablation on a real model can
+push activations far off-distribution, where model behaviour is uninformative; our blobs are
+forgiving about this.</li>
+<li><em>Benchmark Goodharting.</em> A method tuned to this generator family (sparse linear
+mixtures + rings) inherits its assumptions. The defence is config diversity: correlated
+anchors, hierarchies, and label families the method's authors didn't see.</li>
+</ul>
+<p><strong>The recommended use pattern</strong> is therefore regression testing, not leaderboard
+chasing: when developing a new method (say, a variant of integrated conceptual sensitivity),
+first show it clears the gates existing methods clear, then show it survives a toy pathology
+they don't — and only then spend the compute to look for that pathology in a real model.</p>
+
+<h2>Reading a report</h2>
+<p>Each <a href="runs/index.html">run report</a> has four panels. Suggested reading order:
+first the <em>meta line</em> (val accuracy — if the model didn't learn the label, stop);
+then the <em>scorecard</em> (recovery and regime tell you whether concepts were found and in
+what shape; faithfulness ρ tells you whether importance can be trusted); then the
+<em>per-concept importance</em> chart (compare each method's bars against the gray ground-truth
+bars — this is where the label probe's XOR failure is visible to the naked eye); and finally the
+<em>embedding-space projection</em> (green = planted anchors, yellow = what the method found —
+splitting and dilution are directly visible as yellow fans).</p>
+
+<footer>
+conceptlab · <a href="https://github.com/juliarozanova/conceptlab">source</a> ·
+<a href="runs/index.html">reports</a> · built as a validation testbed for interpretability
+research; all results regenerable via <code>uv run conceptlab-run --config configs/&lt;name&gt;.yaml</code>
+</footer>
+</main></body></html>

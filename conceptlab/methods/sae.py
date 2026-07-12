@@ -44,12 +44,14 @@ class _BaseSAE(InterpMethod):
     can_discover = True
 
     def __init__(self, overcomplete: float = 4.0, n_features: int | None = None,
-                 epochs: int = 300, lr: float = 3e-3, seed: int = 0):
+                 epochs: int = 300, lr: float = 3e-3, seed: int = 0,
+                 alive_threshold: float = 0.01):
         self.overcomplete = overcomplete
         self.n_features = n_features
         self.epochs = epochs
         self.lr = lr
         self.seed = seed
+        self.alive_threshold = alive_threshold
 
     def _n_features(self, ctx) -> int:
         return self.n_features or max(4, int(round(ctx.n_dirs * self.overcomplete)))
@@ -89,12 +91,19 @@ class _BaseSAE(InterpMethod):
         with torch.no_grad():
             feats = self._activate(sae.encode_pre(X))
             self._usage = (feats.abs() > 1e-6).float().mean(0).numpy()  # firing rate per atom
-            self._dirs = unit(sae.W_dec.detach().numpy())
+            self._all_dirs = unit(sae.W_dec.detach().numpy())
         self._sae = sae
         return self
 
     def discovered_concepts(self) -> np.ndarray:
-        return self._dirs
+        """Alive dictionary atoms only (firing rate above ``alive_threshold``).
+
+        Dead atoms are randomly-initialised directions the SAE never uses;
+        including them pollutes recovery/redundancy statistics. Excluding them
+        is standard SAE practice, and the alive count is itself a finding.
+        """
+        alive = self._usage > self.alive_threshold
+        return self._all_dirs[alive] if alive.any() else self._all_dirs
 
     def feature_usage(self) -> np.ndarray:
         """Firing rate of each dictionary atom (for dead-feature diagnostics)."""

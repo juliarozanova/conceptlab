@@ -60,16 +60,22 @@ ring-position blobs form a circle; the true concept is two axes (green) while th
 SAE's discovered directions (yellow) fan out around the whole ring — the
 **dilution regime** made visible.*
 
+Blob noise is set so the Gaussians genuinely overlap — no score saturates at 1.0,
+so method differences are always visible.
+
 | Config | What it checks | Result |
 |---|---|---|
-| `easy_blobs` | Harness sanity: probe skyline should ace recovery; causal importance should isolate the label's concepts. | probe recovery **0.997**, ICA **1.00**, PCA 0.64; ablation/IG isolate z0,z1 ✓ |
-| `superposition_xor` | SAEs should beat PCA on recovery; linear-only importance should fail on the XOR-coupled concepts. | recovery: SAE **0.57–0.62** > PCA **0.41**; faithfulness: causal **0.75–0.88** vs linear label-probe **0.03** ✓ |
-| `circle_transformer` | Reproduces the SAE **dilution regime** on a circular concept. | SAE ring-coverage **0.5** vs linear baselines **0.25**, higher redundancy ✓ |
+| `easy_blobs` | Harness sanity: probe skyline should ace recovery; causal importance should isolate the label's concepts. | skyline **0.996**, ICA **0.999**, SAEs 0.85 (compact), PCA 0.68; causal methods isolate z0,z1 ✓ |
+| `superposition_xor` | 32 concepts in 24 dims with **sparse** background firing. Overcomplete SAEs should beat the dimension-capped linear methods; linear importance should fail on XOR. | TopK SAE recovery **0.92** ≫ PCA **0.41** (ICA 0.94 but coverage-capped at D); faithfulness: causal **0.82–0.85** vs linear label-probe **0.05** ✓ |
+| `circle_transformer` | Reproduces the SAE **dilution regime** on a circular concept (12-position ring). | TopK: regime **dilution** (redundancy 3.25, ring-coverage 0.63) vs ReLU+L1 compact (0.375) vs linear baselines 0.25 ✓ |
 
-The linear label-probe's near-zero faithfulness (0.03) on the XOR label — while
-ablation, patching and integrated gradients all score 0.75+ — is the benchmark's
-discriminating result: it separates methods that capture concept *interactions*
-from those that only see linear importance.
+Two discriminating results:
+- The linear label-probe's near-zero faithfulness (**0.05**) on the XOR label — while
+  ablation, patching and integrated gradients all score 0.8+ — separates methods that
+  capture concept *interactions* from those that only see linear importance.
+- The two SAE variants land in **different capture regimes on the same ring**
+  (TopK dilutes; ReLU+L1 stays compact): the regime you observe is partly a property
+  of the sparsity mechanism, not just of the model under study.
 
 ## Adding your own method
 

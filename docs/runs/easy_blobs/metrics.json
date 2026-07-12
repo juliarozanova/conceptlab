@@ -1,11 +1,11 @@
 {
-  "val_acc": 1.0,
-  "train_acc": 1.0,
+  "val_acc": 0.9617777665456136,
+  "train_acc": 0.9995555480321249,
   "methods": {
     "probe_skyline": {
       "name": "probe_skyline",
       "recovery": {
-        "mean_matched_cosine": 0.9968718111967844,
+        "mean_matched_cosine": 0.9958447764530659,
         "coverage": 1.0,
         "redundancy": 1.0,
         "regime": "compact",
@@ -13,25 +13,25 @@
         "n_true": 6,
         "ring_coverage": null
       },
-      "sufficiency": 1.0
+      "sufficiency": 0.9651851851851853
     },
     "pca": {
       "name": "pca",
       "recovery": {
-        "mean_matched_cosine": 0.6418038712817027,
-        "coverage": 0.2222222222222222,
+        "mean_matched_cosine": 0.6747518822214752,
+        "coverage": 0.4444444444444444,
         "redundancy": 1.0,
         "regime": "partial",
         "n_discovered": 6,
         "n_true": 6,
         "ring_coverage": null
       },
-      "sufficiency": 1.0
+      "sufficiency": 0.9666666666666667
     },
     "ica": {
       "name": "ica",
       "recovery": {
-        "mean_matched_cosine": 0.9997322262980498,
+        "mean_matched_cosine": 0.998658173565005,
         "coverage": 1.0,
         "redundancy": 1.0,
         "regime": "compact",
@@ -39,38 +39,38 @@
         "n_true": 6,
         "ring_coverage": null
       },
-      "sufficiency": 1.0
+      "sufficiency": 0.9674074074074075
     },
     "relu_sae": {
       "name": "relu_sae",
       "recovery": {
-        "mean_matched_cosine": 0.8195348466281627,
-        "coverage": 0.7777777777777778,
-        "redundancy": 1.111111111111111,
-        "regime": "partial",
-        "n_discovered": 24,
+        "mean_matched_cosine": 0.8524851881758319,
+        "coverage": 0.888888888888889,
+        "redundancy": 1.0,
+        "regime": "compact",
+        "n_discovered": 12,
         "n_true": 6,
         "ring_coverage": null
       },
-      "sufficiency": 1.0
+      "sufficiency": 0.9637037037037036
     },
     "topk_sae": {
       "name": "topk_sae",
       "recovery": {
-        "mean_matched_cosine": 0.49575758642478324,
-        "coverage": 0.16666666666666666,
-        "redundancy": 10.666666666666666,
-        "regime": "partial",
-        "n_discovered": 24,
+        "mean_matched_cosine": 0.8472085000618784,
+        "coverage": 0.8333333333333334,
+        "redundancy": 1.1944444444444444,
+        "regime": "compact",
+        "n_discovered": 12,
         "n_true": 6,
         "ring_coverage": null
       },
-      "sufficiency": 0.9925925925925926
+      "sufficiency": 0.9629629629629629
     },
     "ablation": {
       "name": "ablation",
       "faithfulness": {
-        "spearman": 0.7904761904761904,
+        "spearman": 0.8095238095238096,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -78,7 +78,7 @@
     "patching": {
       "name": "patching",
       "faithfulness": {
-        "spearman": 0.7523809523809524,
+        "spearman": 0.9047619047619048,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -86,7 +86,7 @@
     "integrated_gradients": {
       "name": "integrated_gradients",
       "faithfulness": {
-        "spearman": 0.8095238095238096,
+        "spearman": 0.7714285714285715,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -94,7 +94,7 @@
     "label_probe": {
       "name": "label_probe",
       "faithfulness": {
-        "spearman": 0.6000000000000001,
+        "spearman": 0.5619047619047619,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -106,7 +106,7 @@
     "spec": {
       "dim": 32,
       "geometry": "orthogonal",
-      "noise": 0.1,
+      "noise": 0.25,
       "groups": [
         {
           "kind": "point",
@@ -138,14 +138,14 @@
     ],
     "method_kwargs": {
       "relu_sae": {
-        "overcomplete": 4.0,
-        "l1": 0.003,
-        "epochs": 300
+        "overcomplete": 2.0,
+        "l1": 0.006,
+        "epochs": 500
       },
       "topk_sae": {
-        "overcomplete": 4.0,
-        "k": 1,
-        "epochs": 300
+        "overcomplete": 2.0,
+        "k": 4,
+        "epochs": 500
       }
     },
     "n_train": 6000,
@@ -155,7 +155,7 @@
       1,
       2
     ],
-    "min_accuracy": 0.95,
+    "min_accuracy": 0.85,
     "interaction_concepts": [
       0,
       1
@@ -166,14 +166,14 @@
     1,
     2
   ],
-  "runtime_s": 33.1,
+  "runtime_s": 37.0,
   "gt_importance": [
-    0.4996654987335205,
-    0.5013293623924255,
-    2.7063131255999906e-06,
-    1.8269272459292552e-06,
-    3.3931175948964665e-06,
-    1.5866937701503048e-06
+    0.46662598848342896,
+    0.4661516547203064,
+    0.015311604365706444,
+    0.017950626090168953,
+    0.019106663763523102,
+    0.018387556076049805
   ],
   "concept_names": [
     "z0",

@@ -1,24 +1,24 @@
 {
-  "val_acc": 0.9362500111262003,
+  "val_acc": 0.9894166588783264,
   "train_acc": 1.0,
   "methods": {
     "probe_skyline": {
       "name": "probe_skyline",
       "recovery": {
-        "mean_matched_cosine": 0.5960089371796428,
-        "coverage": 0.14583333333333334,
+        "mean_matched_cosine": 0.664429132724953,
+        "coverage": 0.3125,
         "redundancy": 1.0,
         "regime": "partial",
         "n_discovered": 32,
         "n_true": 32,
         "ring_coverage": null
       },
-      "sufficiency": 0.8711111111111111
+      "sufficiency": 0.9219444444444443
     },
     "pca": {
       "name": "pca",
       "recovery": {
-        "mean_matched_cosine": 0.40632240197299946,
+        "mean_matched_cosine": 0.409223444934012,
         "coverage": 0.10416666666666667,
         "redundancy": 1.0,
         "regime": "partial",
@@ -26,51 +26,51 @@
         "n_true": 32,
         "ring_coverage": null
       },
-      "sufficiency": 0.7055555555555556
+      "sufficiency": 0.7702777777777778
     },
     "ica": {
       "name": "ica",
       "recovery": {
-        "mean_matched_cosine": 0.9497707346085033,
-        "coverage": 0.7604166666666666,
+        "mean_matched_cosine": 0.9409733036923816,
+        "coverage": 0.78125,
         "redundancy": 1.0,
         "regime": "compact",
         "n_discovered": 24,
         "n_true": 32,
         "ring_coverage": null
       },
-      "sufficiency": 0.7038888888888889
+      "sufficiency": 0.7447222222222223
     },
     "relu_sae": {
       "name": "relu_sae",
       "recovery": {
-        "mean_matched_cosine": 0.5727821289054682,
+        "mean_matched_cosine": 0.5549876333429692,
         "coverage": 0.052083333333333336,
-        "redundancy": 0.6666666666666666,
+        "redundancy": 1.0,
         "regime": "partial",
-        "n_discovered": 128,
+        "n_discovered": 81,
         "n_true": 32,
         "ring_coverage": null
       },
-      "sufficiency": 0.7077777777777777
+      "sufficiency": 0.736111111111111
     },
     "topk_sae": {
       "name": "topk_sae",
       "recovery": {
-        "mean_matched_cosine": 0.6147063787071673,
-        "coverage": 0.11458333333333333,
-        "redundancy": 1.4444444444444444,
-        "regime": "partial",
-        "n_discovered": 128,
+        "mean_matched_cosine": 0.9203900888913923,
+        "coverage": 0.9583333333333334,
+        "redundancy": 1.2576010381905822,
+        "regime": "compact",
+        "n_discovered": 69,
         "n_true": 32,
         "ring_coverage": null
       },
-      "sufficiency": 0.7055555555555556
+      "sufficiency": 0.7375000000000002
     },
     "ablation": {
       "name": "ablation",
       "faithfulness": {
-        "spearman": 0.7475562072336266,
+        "spearman": 0.8156158357771259,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -78,7 +78,7 @@
     "patching": {
       "name": "patching",
       "faithfulness": {
-        "spearman": 0.8767106549364613,
+        "spearman": 0.8484848484848483,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -86,7 +86,7 @@
     "integrated_gradients": {
       "name": "integrated_gradients",
       "faithfulness": {
-        "spearman": 0.7460899315738025,
+        "spearman": 0.8178152492668622,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -94,7 +94,7 @@
     "label_probe": {
       "name": "label_probe",
       "faithfulness": {
-        "spearman": 0.035312805474095786,
+        "spearman": 0.04802052785923753,
         "detects_interaction": true
       },
       "sufficiency": null
@@ -106,12 +106,19 @@
     "spec": {
       "dim": 24,
       "geometry": "random",
-      "noise": 0.05,
+      "noise": 0.08,
       "groups": [
         {
           "kind": "point",
-          "n": 32,
-          "p_active": 0.5
+          "n": 3,
+          "p_active": 0.5,
+          "name_prefix": "z"
+        },
+        {
+          "kind": "point",
+          "n": 29,
+          "p_active": 0.12,
+          "name_prefix": "b"
         }
       ],
       "label": "XOR(AND(z0, z1), z2)"
@@ -144,7 +151,7 @@
       },
       "topk_sae": {
         "overcomplete": 4.0,
-        "k": 2,
+        "k": 5,
         "epochs": 400
       }
     },
@@ -166,74 +173,74 @@
     1,
     2
   ],
-  "runtime_s": 144.5,
+  "runtime_s": 142.3,
   "gt_importance": [
-    0.5091274976730347,
-    0.4449453055858612,
-    0.8621013760566711,
-    0.0432274155318737,
-    0.04459141939878464,
-    0.07401064783334732,
-    0.057140834629535675,
-    0.04387769103050232,
-    0.0468856543302536,
-    0.049290966242551804,
-    0.05345115810632706,
-    0.046777378767728806,
-    0.04888882488012314,
-    0.05370422452688217,
-    0.078496553003788,
-    0.06136045977473259,
-    0.05084172636270523,
-    0.05382943153381348,
-    0.05473646894097328,
-    0.07170833647251129,
-    0.04664679989218712,
-    0.05037161707878113,
-    0.055621251463890076,
-    0.07125929743051529,
-    0.05090523138642311,
-    0.053024254739284515,
-    0.06451243162155151,
-    0.07034897059202194,
-    0.05520376190543175,
-    0.05753345414996147,
-    0.05950573831796646,
-    0.08896498382091522
+    0.4913765788078308,
+    0.49203547835350037,
+    0.9803506135940552,
+    0.015613545663654804,
+    0.015432232059538364,
+    0.030400818213820457,
+    0.01705082692205906,
+    0.012949989177286625,
+    0.010779457166790962,
+    0.016968179494142532,
+    0.007761085405945778,
+    0.013576886616647243,
+    0.013399600051343441,
+    0.01565743051469326,
+    0.018466824665665627,
+    0.03264497220516205,
+    0.017287423834204674,
+    0.016502410173416138,
+    0.012686081230640411,
+    0.01600932888686657,
+    0.02050270140171051,
+    0.014817488379776478,
+    0.01869669184088707,
+    0.028458895161747932,
+    0.012979980558156967,
+    0.018856583163142204,
+    0.01934749446809292,
+    0.026172351092100143,
+    0.015251383185386658,
+    0.013223046436905861,
+    0.01584850251674652,
+    0.028005361557006836
   ],
   "concept_names": [
     "z0",
     "z1",
     "z2",
-    "z3",
-    "z4",
-    "z5",
-    "z6",
-    "z7",
-    "z8",
-    "z9",
-    "z10",
-    "z11",
-    "z12",
-    "z13",
-    "z14",
-    "z15",
-    "z16",
-    "z17",
-    "z18",
-    "z19",
-    "z20",
-    "z21",
-    "z22",
-    "z23",
-    "z24",
-    "z25",
-    "z26",
-    "z27",
-    "z28",
-    "z29",
-    "z30",
-    "z31"
+    "b0",
+    "b1",
+    "b2",
+    "b3",
+    "b4",
+    "b5",
+    "b6",
+    "b7",
+    "b8",
+    "b9",
+    "b10",
+    "b11",
+    "b12",
+    "b13",
+    "b14",
+    "b15",
+    "b16",
+    "b17",
+    "b18",
+    "b19",
+    "b20",
+    "b21",
+    "b22",
+    "b23",
+    "b24",
+    "b25",
+    "b26",
+    "b27",
+    "b28"
   ],
   "label": "XOR(AND(z0, z1), z2)",
   "is_sequence": false

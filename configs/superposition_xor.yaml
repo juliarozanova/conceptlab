@@ -1,16 +1,24 @@
-# Superposition + interaction: 32 concepts packed into 24 dims (random,
-# near-orthogonal anchors) with an XOR-of-AND label. Expectations:
-#   * SAEs / ICA should beat PCA on concept recovery in superposition.
-#   * Linear importance (label_probe) should mis-rank the XOR-coupled concepts
-#     z0/z1, while causal methods (ablation/patching) and IG detect them.
+# Sparse superposition + interaction: 32 concepts packed into 24 dims (random,
+# near-orthogonal anchors) with an XOR-of-AND label. The 29 background concepts
+# are sparse (p=0.12, ~5 concepts active per sample) -- the regime the
+# superposition hypothesis actually describes, and the one where overcomplete
+# dictionaries pay off. Expectations:
+#   * TopK SAE should beat PCA decisively, and beat ICA on *coverage*: PCA/ICA
+#     are capped at D=24 components while 32 concepts exist -- only the
+#     overcomplete SAE can recover more concepts than dimensions.
+#   * Linear importance (label_probe) should collapse on the XOR-coupled
+#     concepts, while causal methods (ablation/patching) and IG detect them.
 name: superposition_xor
 
 spec:
   dim: 24
   geometry: random          # random unit anchors -> superposition when n > dim
-  noise: 0.05
+  # 0.08: modest explicit noise -- anchor interference in superposition already
+  # overlaps the blobs substantially, and the XOR label is noise-fragile.
+  noise: 0.08
   groups:
-    - {kind: point, n: 32, p_active: 0.5}
+    - {kind: point, n: 3, p_active: 0.5, name_prefix: z}    # label concepts
+    - {kind: point, n: 29, p_active: 0.12, name_prefix: b}  # sparse background
   label: "XOR(AND(z0, z1), z2)"
 
 model:
@@ -27,5 +35,7 @@ interaction_concepts: [0, 1]
 
 methods: [probe_skyline, pca, ica, relu_sae, topk_sae, ablation, patching, integrated_gradients, label_probe]
 method_kwargs:
+  # k=5 matches E[#active] ~ 5. ReLU+L1 underperforms TopK here at any L1 --
+  # the shrinkage/mixed-atom weakness that motivated TopK SAEs; kept as a finding.
   relu_sae: {overcomplete: 4.0, l1: 0.002, epochs: 400}
-  topk_sae: {overcomplete: 4.0, k: 2, epochs: 400}
+  topk_sae: {overcomplete: 4.0, k: 5, epochs: 400}

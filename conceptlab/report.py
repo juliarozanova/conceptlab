@@ -255,7 +255,9 @@ _TEMPLATE = """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>conceptlab · {name}</title><style>%%CSS%%</style></head><body>
 <h1>conceptlab — {name}</h1>
-<div class="sub">Interpretability methods scored against known ground truth.</div>
+<div class="sub">Interpretability methods scored against known ground truth.
+&nbsp;·&nbsp; <a href="../index.html">all runs</a>
+&nbsp;·&nbsp; <a href="../../index.html">methodology &amp; how to read this report</a></div>
 <div class="meta">
   <span>label <code>{label}</code></span>
   <span>model <b>{model_kind}</b></span>
@@ -295,7 +297,8 @@ _INDEX_TEMPLATE = """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>conceptlab · runs</title><style>%%CSS%%</style></head><body>
 <h1>conceptlab — runs</h1>
-<div class="sub">Cross-run comparison. Click a run for its full report.</div>
+<div class="sub">Cross-run comparison. Click a run for its full report.
+&nbsp;·&nbsp; <a href="../index.html">methodology &amp; how to read these reports</a></div>
 {cards}
 </body></html>
 """

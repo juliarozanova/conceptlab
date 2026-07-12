@@ -134,10 +134,19 @@ def recovery(discovered: np.ndarray, world: World, thr: float = 0.7) -> Recovery
 
 
 def _regime(coverage: float, redundancy: float, n_disc: int, n_true: int) -> str:
+    """Classify the capture regime from *behavior*, not dictionary size.
+
+    compact    — most true directions matched by ~1 atom each
+    dilution   — several atoms share each true direction (arc-covering)
+    shattering — so many atoms per direction it approaches one-per-manifold-point
+    partial    — much of the ground truth simply not found
+    """
     if coverage < 0.6:
         return "partial"
+    if redundancy >= 6.0:
+        return "shattering"
     if redundancy >= 2.5:
-        return "shattering" if n_disc > 3 * n_true else "dilution"
+        return "dilution"
     return "compact"
 
 

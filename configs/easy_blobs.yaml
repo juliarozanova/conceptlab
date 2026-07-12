@@ -1,12 +1,15 @@
 # Harness sanity check: 6 orthogonal concepts, a simple AND label.
-# Everything should ace this. If the probe skyline can't hit ~1.0 recovery, or
-# causal importance doesn't isolate z0/z1, the harness is broken (not the method).
+# Blob noise 0.25 makes the Gaussians overlap visibly (val acc ~0.96, not 1.0)
+# so scores are informative rather than saturated, while remaining easy enough
+# that every method should basically work. SAE hyperparameters are matched to
+# the data (k=4 ~ E[#active concepts]=3): this config tests the harness, so the
+# methods get their best shot.
 name: easy_blobs
 
 spec:
   dim: 32
   geometry: orthogonal
-  noise: 0.10
+  noise: 0.25
   groups:
     - {kind: point, n: 6, p_active: 0.5}
   label: "AND(z0, z1)"
@@ -20,10 +23,10 @@ model:
 n_train: 6000
 n_val: 1500
 seeds: [0, 1, 2]
-min_accuracy: 0.95
+min_accuracy: 0.85
 interaction_concepts: [0, 1]
 
 methods: [probe_skyline, pca, ica, relu_sae, topk_sae, ablation, patching, integrated_gradients, label_probe]
 method_kwargs:
-  relu_sae: {overcomplete: 4.0, l1: 0.003, epochs: 300}
-  topk_sae: {overcomplete: 4.0, k: 1, epochs: 300}
+  relu_sae: {overcomplete: 2.0, l1: 0.006, epochs: 500}
+  topk_sae: {overcomplete: 2.0, k: 4, epochs: 500}

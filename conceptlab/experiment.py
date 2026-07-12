@@ -121,11 +121,16 @@ def _average_seeds(per_seed: list[dict], method_names: list[str]) -> dict:
             return float(np.mean(vals)) if vals else None
 
         if recs[0].get("recovery"):
+            cov = avg("recovery", "coverage")
+            red = avg("recovery", "redundancy")
             m["recovery"] = {
                 "mean_matched_cosine": avg("recovery", "mean_matched_cosine"),
-                "coverage": avg("recovery", "coverage"),
-                "redundancy": avg("recovery", "redundancy"),
-                "regime": recs[0]["recovery"]["regime"],
+                "coverage": cov,
+                "redundancy": red,
+                # recompute from the seed-averaged stats so the label always
+                # matches the numbers shown next to it
+                "regime": ev._regime(cov, red, recs[0]["recovery"]["n_discovered"],
+                                     recs[0]["recovery"]["n_true"]),
                 "n_discovered": recs[0]["recovery"]["n_discovered"],
                 "n_true": recs[0]["recovery"]["n_true"],
                 "ring_coverage": avg("recovery", "ring_coverage"),

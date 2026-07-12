@@ -1,71 +1,71 @@
 {
-  "val_acc": 1.0,
+  "val_acc": 0.9972500205039978,
   "train_acc": 1.0,
   "methods": {
     "probe_skyline": {
       "name": "probe_skyline",
       "recovery": {
-        "mean_matched_cosine": 0.9978190058885996,
+        "mean_matched_cosine": 0.9972358442991118,
         "coverage": 1.0,
         "redundancy": 1.0,
         "regime": "compact",
         "n_discovered": 5,
         "n_true": 5,
-        "ring_coverage": 0.25
+        "ring_coverage": 0.16666666666666666
       },
-      "sufficiency": 0.6391666666666667
+      "sufficiency": 0.6366666666666667
     },
     "pca": {
       "name": "pca",
       "recovery": {
-        "mean_matched_cosine": 0.796109335340238,
-        "coverage": 0.8,
+        "mean_matched_cosine": 0.8236821894367068,
+        "coverage": 0.9,
         "redundancy": 1.0,
         "regime": "compact",
         "n_discovered": 5,
         "n_true": 5,
-        "ring_coverage": 0.25
+        "ring_coverage": 0.16666666666666666
       },
-      "sufficiency": 0.6358333333333333
+      "sufficiency": 0.6366666666666667
     },
     "ica": {
       "name": "ica",
       "recovery": {
-        "mean_matched_cosine": 0.9182076686312046,
+        "mean_matched_cosine": 0.9355447623534359,
         "coverage": 1.0,
         "redundancy": 1.0,
         "regime": "compact",
         "n_discovered": 5,
         "n_true": 5,
-        "ring_coverage": 0.25
+        "ring_coverage": 0.16666666666666666
       },
-      "sufficiency": 0.6391666666666667
+      "sufficiency": 0.6341666666666667
     },
     "relu_sae": {
       "name": "relu_sae",
       "recovery": {
-        "mean_matched_cosine": 0.798320144251601,
-        "coverage": 0.8,
-        "redundancy": 1.2666666666666666,
+        "mean_matched_cosine": 0.8041076103943248,
+        "coverage": 0.9,
+        "redundancy": 1.475,
         "regime": "compact",
-        "n_discovered": 30,
+        "n_discovered": 43,
         "n_true": 5,
-        "ring_coverage": 0.5
+        "ring_coverage": 0.375
       },
-      "sufficiency": 0.6408333333333334
+      "sufficiency": 0.6441666666666667
     },
     "topk_sae": {
       "name": "topk_sae",
       "recovery": {
-        "mean_matched_cosine": 0.8188439279318849,
-        "coverage": 0.8,
-        "redundancy": 2.333333333333333,
-        "regime": "compact",
-        "n_discovered": 30,
+        "mean_matched_cosine": 0.8625394012773826,
+        "coverage": 0.9,
+        "redundancy": 3.25,
+        "regime": "dilution",
+        "n_discovered": 20,
         "n_true": 5,
-        "ring_coverage": 0.4375
+        "ring_coverage": 0.625
       },
-      "sufficiency": 0.6391666666666667
+      "sufficiency": 0.6458333333333333
     },
     "ablation": {
       "name": "ablation",
@@ -106,13 +106,13 @@
     "spec": {
       "dim": 24,
       "geometry": "orthogonal",
-      "noise": 0.05,
+      "noise": 0.15,
       "sequence": true,
       "seq_len": 12,
       "groups": [
         {
           "kind": "circle",
-          "n_positions": 8,
+          "n_positions": 12,
           "name": "ring"
         },
         {
@@ -121,8 +121,8 @@
           "p_active": 0.4
         }
       ],
-      "label": "IN(ring, 2, 4)",
-      "sequence_label": "ANY(IN(ring, 2, 4)) & LAST(z0)"
+      "label": "IN(ring, 3, 6)",
+      "sequence_label": "ANY(IN(ring, 3, 6)) & LAST(z0)"
     },
     "model": {
       "kind": "transformer",
@@ -148,14 +148,14 @@
     ],
     "method_kwargs": {
       "relu_sae": {
-        "overcomplete": 6.0,
-        "l1": 0.002,
-        "epochs": 400
+        "overcomplete": 12.0,
+        "l1": 0.01,
+        "epochs": 500
       },
       "topk_sae": {
-        "overcomplete": 6.0,
+        "overcomplete": 12.0,
         "k": 2,
-        "epochs": 400
+        "epochs": 500
       }
     },
     "n_train": 8000,
@@ -164,7 +164,7 @@
       0,
       1
     ],
-    "min_accuracy": 0.9,
+    "min_accuracy": 0.85,
     "interaction_concepts": [
       0
     ]
@@ -173,10 +173,10 @@
     0,
     1
   ],
-  "runtime_s": 100.8,
+  "runtime_s": 104.2,
   "gt_importance": [
-    0.001,
-    0.997,
+    0.004666666666666667,
+    0.9936666666666667,
     0.0,
     0.0
   ],
@@ -186,6 +186,6 @@
     "z1",
     "z2"
   ],
-  "label": "ANY(IN(ring, 2, 4)) & LAST(z0)",
+  "label": "ANY(IN(ring, 3, 6)) & LAST(z0)",
   "is_sequence": true
 }
