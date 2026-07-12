@@ -2,6 +2,8 @@
 
 A ground-truth benchmark for **validating and comparing transformer interpretability methods**.
 
+🌐 **[Live reports on GitHub Pages](https://juliarozanova.github.io/conceptlab/runs/index.html)** — cross-run comparison, easy_blobs, superposition_xor, circle_transformer.
+
 Real-model interpretability has no ground truth — "did the SAE find the *real* features?" is unanswerable. `conceptlab` sidesteps this by generating synthetic data where the concepts, their geometry, and their causal importance for the label are **known by construction**. Interpretability methods are then scored on how well they
 
 1. **recover** the planted concepts from a trained model's activations, and
@@ -29,8 +31,14 @@ uv sync                                             # create env (CPU torch)
 uv run conceptlab-run --config configs/easy_blobs.yaml
 uv run conceptlab-run --config configs/superposition_xor.yaml
 uv run conceptlab-run --config configs/circle_transformer.yaml
-open runs/index.html                                # cross-run comparison
+open docs/runs/index.html                           # cross-run comparison
 ```
+
+**Pre-generated reports** are live on GitHub Pages:
+- **[Cross-run index](https://juliarozanova.github.io/conceptlab/runs/index.html)** — headlines from all runs
+- **[easy_blobs](https://juliarozanova.github.io/conceptlab/runs/easy_blobs/report.html)** — harness sanity check
+- **[superposition_xor](https://juliarozanova.github.io/conceptlab/runs/superposition_xor/report.html)** — SAEs beat PCA; linear importance fails on XOR
+- **[circle_transformer](https://juliarozanova.github.io/conceptlab/runs/circle_transformer/report.html)** — SAE dilution on circular concepts
 
 Each run generates data, trains a toy model, runs every configured interpretability
 method, evaluates against ground truth, and writes a self-contained `report.html`.
