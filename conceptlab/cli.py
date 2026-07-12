@@ -13,7 +13,7 @@ from .experiment import RunConfig, run_experiment
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Run a conceptlab interpretability experiment.")
     ap.add_argument("--config", required=True, help="path to a YAML experiment config")
-    ap.add_argument("--out", default="runs", help="output directory (default: runs/)")
+    ap.add_argument("--out", default="docs/runs", help="output directory (default: docs/runs/)")
     args = ap.parse_args(argv)
 
     cfg_dict = yaml.safe_load(Path(args.config).read_text())
