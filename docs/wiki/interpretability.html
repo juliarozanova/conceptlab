@@ -1,0 +1,212 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>conceptlab wiki · making interpretability deductions</title>
+<link rel="stylesheet" href="wiki.css"></head><body><main>
+<h1>Making interpretability deductions</h1>
+<div class="sub">How the answer key is computed, what the methods under test actually do, and —
+most importantly — which conclusions each result does and does not license.</div>
+<div class="nav">
+  <a href="index.html">Overview</a>
+  <a href="generation.html">How the data is generated</a>
+  <a href="concepts.html">Concept catalog</a>
+  <a class="here" href="interpretability.html">Making interpretability deductions</a>
+</div>
+
+<h2>The causal picture</h2>
+<p>
+Everything in the testbed hangs off one structural rule: <b>the label depends on the inputs only
+through the concepts</b>. Raw columns feed concepts; concepts (possibly through compound
+concepts) feed the label. Even "direct" effects are wrapped as trivial level-0 concepts
+(<code>card_not_present</code> <i>is</i> the channel column). This is called
+<span class="term">pure mediation</span>, and it means input-level and concept-level explanation
+are two zoom levels of the same picture, never two competing pictures.
+</p>
+<figure>
+<svg viewBox="0 0 900 300" role="img" aria-label="Causal DAG from inputs through concepts to label">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#898781"/></marker></defs>
+<!-- inputs -->
+<g>
+<rect class="dg-box" x="20" y="30" width="130" height="34"/><text class="dg-s" x="85" y="52" text-anchor="middle">amount</text>
+<rect class="dg-box" x="20" y="80" width="130" height="34"/><text class="dg-s" x="85" y="102" text-anchor="middle">channel</text>
+<rect class="dg-box" x="20" y="130" width="130" height="34"/><text class="dg-s" x="85" y="152" text-anchor="middle">country</text>
+<rect class="dg-box" x="20" y="180" width="130" height="34"/><text class="dg-s" x="85" y="202" text-anchor="middle">Δt (timing)</text>
+<rect class="dg-box" x="20" y="230" width="130" height="34"/><text class="dg-s" x="85" y="252" text-anchor="middle">cvv_result</text>
+<text class="dg-m" x="85" y="290" text-anchor="middle">input columns</text>
+</g>
+<!-- L0/1 concepts -->
+<g>
+<rect class="dg-box" x="240" y="30" width="170" height="34"/><text class="dg-s" x="325" y="52" text-anchor="middle">micro_amount (L0)</text>
+<rect class="dg-box" x="240" y="80" width="170" height="34"/><text class="dg-s" x="325" y="102" text-anchor="middle">card_not_present (L0)</text>
+<rect class="dg-box" x="240" y="130" width="170" height="34"/><text class="dg-s" x="325" y="152" text-anchor="middle">unusual_country (L2)</text>
+<rect class="dg-box" x="240" y="180" width="170" height="34"/><text class="dg-s" x="325" y="202" text-anchor="middle">rapid_fire (L1)</text>
+<rect class="dg-box" x="240" y="230" width="170" height="34"/><text class="dg-s" x="325" y="252" text-anchor="middle">cvv_failure (L0)</text>
+<text class="dg-m" x="325" y="290" text-anchor="middle">atomic concepts</text>
+</g>
+<!-- compound -->
+<rect class="dg-box" x="490" y="105" width="190" height="40"/>
+<text class="dg-s" x="585" y="130" text-anchor="middle">test_then_cashout (L3a)</text>
+<text class="dg-m" x="585" y="170" text-anchor="middle">compound concept</text>
+<!-- label -->
+<rect class="dg-box" x="760" y="105" width="120" height="40"/>
+<text class="dg-t" x="820" y="130" text-anchor="middle">fraud?</text>
+<!-- arrows in -->
+<path class="dg-arrow" d="M150,47 L238,47"/>
+<path class="dg-arrow" d="M150,97 L238,97"/>
+<path class="dg-arrow" d="M150,147 L238,147"/>
+<path class="dg-arrow" d="M150,197 L238,197"/>
+<path class="dg-arrow" d="M150,247 L238,247"/>
+<!-- concepts to compound -->
+<path class="dg-arrow" d="M410,47 C455,60 460,95 488,112"/>
+<path class="dg-arrow" d="M410,97 L488,118"/>
+<path class="dg-arrow" d="M410,197 C455,185 460,150 488,138"/>
+<path class="dg-arrow" d="M410,247 C465,235 470,160 488,142"/>
+<!-- compound + concept to label -->
+<path class="dg-arrow" d="M680,125 L758,125"/>
+<path class="dg-arrow" d="M410,147 C560,170 690,150 758,135"/>
+<!-- forbidden direct path -->
+<path d="M85,64 C85,10 700,5 815,103" stroke="#e34948" stroke-width="1.4" fill="none" stroke-dasharray="6,5"/>
+<text class="dg-m" x="450" y="18" text-anchor="middle" fill="#e34948">✕ no direct input→label paths — everything flows through concepts</text>
+</svg>
+<figcaption>The causal graph the generator enforces. Explanations at input level and concept
+level must agree with each other through this graph — and we can check, because we own it.</figcaption>
+</figure>
+
+<h2>The answer key has three tiers</h2>
+<p>"How important was concept <i>c</i> for this decision?" turns out to need three increasingly
+precise answers, and it saves a lot of confusion to keep them separate:</p>
+<table class="simple">
+<tr><th>Tier</th><th>Question</th><th>How it's computed</th><th>How methods are judged</th></tr>
+<tr><td><b>1 · Structural</b></td><td>Could <i>c</i> matter at all?</td>
+<td>Is <i>c</i> in the label's formula (transitively)?</td>
+<td><b>Gate:</b> attribution on out-of-formula concepts must be ~0. No excuses.</td></tr>
+<tr><td><b>2 · Pivotal</b></td><td>Did <i>c</i> matter for <i>this</i> transaction?</td>
+<td>Flip <i>c</i>, recompute: does the label change?</td>
+<td><b>Gate:</b> concepts that are locally inert (in the formula, but this example's outcome
+doesn't hinge on them) must get ~0 here.</td></tr>
+<tr><td><b>3 · Graded</b></td><td>How much, relative to the others?</td>
+<td>Two definitions: toggle-magnitude and Shapley (below).</td>
+<td><b>Score:</b> rank correlation with both definitions.</td></tr>
+</table>
+
+<div class="statbox"><b>Stats box — Spearman rank correlation (the ρ in the reports).</b>
+Forget the exact numbers a method outputs; do its <i>rankings</i> agree with the answer key's?
+ρ = 1 means same order, 0 means unrelated, −1 means backwards. We use rankings because
+different methods output numbers on incomparable scales — order is the fair common ground.</div>
+
+<h2>Why tier 3 needs two definitions — the OR problem</h2>
+<p>
+Suppose the label is <code>fraud = (burst AND cnp) OR unusual_country</code> and a transaction
+has <b>all three</b> true. Toggle any single concept off — the label stays 1, because the other
+branch still holds. So "toggle it and watch" gives every concept <b>zero</b> importance, on the
+very example they jointly caused. This is <span class="term">overdetermination</span>: multiple
+sufficient causes, no single point of failure.
+</p>
+<figure>
+<svg viewBox="0 0 900 200" role="img" aria-label="Overdetermination example">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#898781"/></marker></defs>
+<rect class="dg-box" x="30" y="20" width="150" height="34"/><text class="dg-s" x="105" y="42" text-anchor="middle">burst = 1</text>
+<rect class="dg-box" x="30" y="70" width="150" height="34"/><text class="dg-s" x="105" y="92" text-anchor="middle">cnp = 1</text>
+<rect class="dg-box" x="30" y="140" width="150" height="34"/><text class="dg-s" x="105" y="162" text-anchor="middle">unusual_country = 1</text>
+<rect class="dg-box" x="280" y="42" width="90" height="36"/><text class="dg-t" x="325" y="65" text-anchor="middle">AND</text>
+<rect class="dg-box" x="470" y="90" width="90" height="36"/><text class="dg-t" x="515" y="113" text-anchor="middle">OR</text>
+<rect class="dg-box" x="680" y="90" width="130" height="36"/><text class="dg-t" x="745" y="113" text-anchor="middle">fraud = 1</text>
+<path class="dg-arrow" d="M180,37 L278,52"/>
+<path class="dg-arrow" d="M180,87 L278,68"/>
+<path class="dg-arrow" d="M370,60 L468,100"/>
+<path class="dg-arrow" d="M180,157 L468,116"/>
+<path class="dg-arrow" d="M560,108 L678,108"/>
+<text class="dg-m" x="325" y="150" text-anchor="middle">toggle burst → AND fails,</text>
+<text class="dg-m" x="325" y="165" text-anchor="middle">but OR still fires → label unchanged</text>
+</svg>
+<figcaption>Every single toggle leaves the label at 1 — yet these three concepts are the entire
+explanation. Toggle-importance alone would report "nothing mattered".</figcaption>
+</figure>
+<div class="statbox"><b>Stats box — Shapley values, restaurant-bill edition.</b> Three friends
+share a meal; how do you split the bill fairly when some dishes were shared? Shapley's answer:
+imagine every possible order in which people could have "arrived", charge each person what they
+added when they arrived, and average over all orders. Applied to concepts: build the label up
+from nothing, adding concepts in every order, and credit each concept with what it changed when
+it arrived. In the OR example above, credit gets shared instead of vanishing. The testbed
+exports <b>both</b> toggle-importance and Shapley, and reports where they disagree — because
+where they disagree, "which concept mattered most" genuinely has no unique answer, and a
+benchmark that pretends otherwise is just picking a favorite definition.</div>
+
+<h2>What the methods under test actually do</h2>
+<p>All the concept-attribution methods share one ingredient: a <span class="term">CAV</span>.</p>
+<div class="statbox"><b>Stats box — CAVs (Concept Activation Vectors).</b> Take the model's
+internal activity (its activation vector) on many examples <i>with</i> the concept and many
+<i>without</i>. Fit the simplest possible classifier between the two groups. The direction that
+classifier looks along is the CAV — "which way is <i>more burst-like</i> inside this model's
+head". Everything downstream inherits the CAV's quality, which is why the example sets must be
+decorrelated (see the <a href="concepts.html">catalog intro</a>): if all your burst examples are
+frauds, your "burst" direction is actually a fraud direction, and every explanation built on it
+is quietly circular.</div>
+<table class="simple">
+<tr><th>Method</th><th>In one sentence</th><th>Characteristic failure the testbed exposes</th></tr>
+<tr><td><b>ICS</b> (integrated conceptual sensitivity)</td>
+<td>Slide the concept's component from "absent" to "present", accumulating the model's
+sensitivity along the way (Integrated Gradients along the CAV).</td>
+<td>Inherits CAV errors; path/baseline choices are researcher degrees of freedom.</td></tr>
+<tr><td><b>TCAV</b></td>
+<td>Count how often nudging along the CAV pushes the output up — a global vote.</td>
+<td>Consistently the weakest here: leaks attribution onto correlated-but-noncausal concepts
+(seen directly in <code>tab_correlated</code>) and saturates on confident models.</td></tr>
+<tr><td><b>CAV-ablation</b></td>
+<td>Delete the concept's component from the activation; measure how much the output moves.</td>
+<td>Deleting a direction can drag the activation off-distribution; entangled concepts get
+disturbed together.</td></tr>
+<tr><td><b>Probe-patch</b></td>
+<td>Set the concept's internal value to its opposite (a mini counterfactual inside the model).</td>
+<td>Only as good as the probe; strong patches can be off-manifold.</td></tr>
+<tr><td><b>Input-aggregated</b></td>
+<td>Attribute to raw inputs, then roll credit up to concepts using the known formula graph.</td>
+<td>Cannot separate two concepts built from the same column — which the taxonomy plants
+deliberately (<code>foreign_country</code> vs <code>currency_foreign</code>).</td></tr>
+</table>
+
+<h2>The audit: "is the concept even in there?"</h2>
+<p>
+Before blaming a method for missing a concept, ask whether the model represents that concept at
+all. The <b>concept audit</b> fits a simple probe for every concept at every layer of the trained
+model and reports how decodable it is. This cleanly separates three situations that would
+otherwise be indistinguishable: the method failed; the concept isn't represented (so ~0
+attribution is <i>correct</i>); the concept is represented only at some layers/positions (so the
+method must look in the right place). Rule of thumb for reading reports: <i>attribution claims
+are only as strong as the audit row above them</i>.
+</p>
+
+<h2>Which deductions are licensed?</h2>
+<table class="simple">
+<tr><th>If you observe…</th><th>You may conclude…</th><th>You may NOT conclude…</th></tr>
+<tr><td>A method passes gates + high ρ on both tier-3 definitions, across configs</td>
+<td>Its attribution mechanism is sound <i>in the regimes tested</i>; failures elsewhere are
+likely CAV/representation issues, not mechanism.</td>
+<td>That its numbers on a production model are correct.</td></tr>
+<tr><td>A method attributes to a planted confounder (e.g. <code>on_holiday</code>)</td>
+<td>It confuses correlation with causation — disqualifying for fraud explanations, where
+confounders (travel!) are everywhere.</td>
+<td>—</td></tr>
+<tr><td>Toggle-GT and Shapley-GT disagree strongly on a config</td>
+<td>The label is overdetermined there; ranking has no unique answer, so compare methods on
+gates only.</td>
+<td>That one method is "better" because it matches your preferred definition.</td></tr>
+<tr><td>Per-typology attribution works but the global ranking is ~0</td>
+<td>Fraud is heterogeneous: explanations must be local (per case). A global "top concepts" bar
+chart over all fraud is a category error.</td>
+<td>That the methods failed.</td></tr>
+<tr><td>A concept has low audit AUC and ~0 attribution</td>
+<td>The model likely doesn't use it — a possible <i>model</i> shortcoming worth investigating.</td>
+<td>That the attribution method missed it.</td></tr>
+</table>
+
+<div class="callout warn">
+<b>The transfer rule, one last time.</b> What travels from synthetic worlds to real ones is the
+<i>structure</i> of results: which failure modes exist, which methods are immune, what must be
+controlled (decorrelation, audits, locality). Absolute scores do not travel. Treat every result
+here as a necessary condition on a method — a driving test, not a race result.
+</div>
+
+<footer>conceptlab wiki · see the deductions in action:
+<a href="../concept_runs/index.html">concept-attribution reports</a> ·
+<a href="../fraud_runs/fraud_default/report.html">fraud transfer report</a></footer>
+</main></body></html>

@@ -1,0 +1,130 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>conceptlab wiki · overview</title>
+<link rel="stylesheet" href="wiki.css"></head><body><main>
+<h1>The conceptlab wiki</h1>
+<div class="sub">A guided tour of the synthetic data generation method and the concept taxonomy —
+written for someone new to interpretability, with the statistics explained along the way.</div>
+<div class="nav">
+  <a class="here" href="index.html">Overview</a>
+  <a href="generation.html">How the data is generated</a>
+  <a href="concepts.html">Concept catalog</a>
+  <a href="interpretability.html">Making interpretability deductions</a>
+</div>
+
+<h2>The one-paragraph version</h2>
+<p>
+We want to know whether interpretability methods — tools that claim to explain what a neural
+network is doing — actually tell the truth. On real data there is no answer key: if a method
+says a fraud model flagged a payment "because of the burst of transactions", nobody can check.
+So we build <b>small synthetic worlds where the answer key is known by construction</b>: we
+decide exactly which <span class="term">concepts</span> exist, how they combine into labels,
+and how strongly each one matters. Then we train models on that world, run the interpretability
+methods, and grade them. A method that fails where we know the answer should not be trusted
+where we don't.
+</p>
+
+<div class="callout">
+<b>What's a "concept" here?</b> A human-meaningful, true-or-false property of a transaction in
+its context: <code>card_not_present</code>, <code>short_burst</code> ("several transactions in
+a few minutes"), <code>on_holiday</code> ("this customer is currently traveling"). Concepts are
+the vocabulary in which we want explanations — a fraud analyst thinks in concepts, not in
+neuron activations.
+</div>
+
+<h2>The pipeline at a glance</h2>
+<figure>
+<svg viewBox="0 0 900 330" role="img" aria-label="Data generation pipeline">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#898781"/></marker></defs>
+<rect class="dg-box" x="10" y="30" width="180" height="110" rx="8"/>
+<text class="dg-t" x="100" y="52" text-anchor="middle">1 · The world</text>
+<text class="dg-s" x="100" y="74" text-anchor="middle">customers &amp; archetypes</text>
+<text class="dg-s" x="100" y="92" text-anchor="middle">merchants, devices, cards</text>
+<text class="dg-s" x="100" y="110" text-anchor="middle">latent episodes</text>
+<text class="dg-m" x="100" y="128" text-anchor="middle">(travel, seasons, breaches)</text>
+
+<rect class="dg-box" x="240" y="30" width="180" height="110" rx="8"/>
+<text class="dg-t" x="330" y="52" text-anchor="middle">2 · Event streams</text>
+<text class="dg-s" x="330" y="74" text-anchor="middle">each customer emits</text>
+<text class="dg-s" x="330" y="92" text-anchor="middle">transactions over time</text>
+<text class="dg-m" x="330" y="116" text-anchor="middle">bursty, daily-rhythmed,</text>
+<text class="dg-m" x="330" y="130" text-anchor="middle">payday-cycled</text>
+
+<rect class="dg-box" x="470" y="30" width="180" height="110" rx="8"/>
+<text class="dg-t" x="560" y="52" text-anchor="middle">3 · Fraud campaigns</text>
+<text class="dg-s" x="560" y="74" text-anchor="middle">typologies hijack a few</text>
+<text class="dg-s" x="560" y="92" text-anchor="middle">streams &amp; rewrite events</text>
+<text class="dg-m" x="560" y="116" text-anchor="middle">each typology has a known</text>
+<text class="dg-m" x="560" y="130" text-anchor="middle">defining concept set</text>
+
+<rect class="dg-box" x="700" y="30" width="190" height="110" rx="8"/>
+<text class="dg-t" x="795" y="52" text-anchor="middle">4 · Labels &amp; concepts</text>
+<text class="dg-s" x="795" y="74" text-anchor="middle">every event gets concept</text>
+<text class="dg-s" x="795" y="92" text-anchor="middle">values + fraud label</text>
+<text class="dg-m" x="795" y="116" text-anchor="middle">computed during generation</text>
+<text class="dg-m" x="795" y="130" text-anchor="middle">= the answer key</text>
+
+<path class="dg-arrow" d="M190,85 L238,85"/>
+<path class="dg-arrow" d="M420,85 L468,85"/>
+<path class="dg-arrow" d="M650,85 L698,85"/>
+
+<rect class="dg-box" x="130" y="220" width="270" height="80" rx="8"/>
+<text class="dg-t" x="265" y="245" text-anchor="middle">Consumer A · model training</text>
+<text class="dg-s" x="265" y="267" text-anchor="middle">causal TabBERT / transformers learn</text>
+<text class="dg-s" x="265" y="285" text-anchor="middle">fraud from raw events only</text>
+
+<rect class="dg-box" x="500" y="220" width="270" height="80" rx="8"/>
+<text class="dg-t" x="635" y="245" text-anchor="middle">Consumer B · explanation grading</text>
+<text class="dg-s" x="635" y="267" text-anchor="middle">methods explain the model; answers</text>
+<text class="dg-s" x="635" y="285" text-anchor="middle">checked against the answer key</text>
+
+<path class="dg-arrow cool" d="M740,140 C700,185 400,180 300,218"/>
+<path class="dg-arrow cool" d="M800,140 C790,180 700,195 660,218"/>
+<text class="dg-m" x="452" y="200" text-anchor="middle">events only (concepts withheld)</text>
+</svg>
+<figcaption>The concept columns are never shown to the models — they exist only in the answer
+key. That single rule is what makes the whole benchmark non-circular.</figcaption>
+</figure>
+
+<h2>Why synthetic data at all?</h2>
+<p>Three properties you cannot get from real payment data, no matter how much of it you have:</p>
+<ul>
+<li><b>An answer key.</b> Real fraud labels tell you <i>that</i> a payment was fraud, never
+<i>why</i>. Here, every fraudulent event carries the concepts that define its typology — so
+"explain this decision" has a checkable correct answer.</li>
+<li><b>Counterfactuals.</b> We can re-run any customer's history with one thing changed — the
+holiday removed, the burst suppressed — and watch what the model does. That is the gold-standard
+question ("what would have happened without X?") answered <i>exactly</i>, which real data can
+never do. (<a href="generation.html#counterfactuals">How this works →</a>)</li>
+<li><b>Controlled correlations.</b> In real data, "burst of transactions" and "fraud" are
+tangled together. Here we deliberately plant innocent bursts (shopping sprees) and innocent
+travel so that each concept exists <i>independently</i> of fraud at a strength we choose. This
+is what stops concept detectors from being fraud detectors in disguise.</li>
+</ul>
+
+<div class="callout warn">
+<b>And the honest limitation.</b> Synthetic worlds are simpler than reality. Results here
+transfer as <i>failure modes and method rankings</i> ("linear methods miss interactions",
+"TCAV leaks onto confounders"), not as absolute numbers. A method that passes here can still
+fail on production data; a method that fails here should not be trusted anywhere. Think of it
+as a driving test: passing doesn't make you a Formula 1 driver, but failing means you don't get
+the keys.
+</div>
+
+<h2>Where to go next</h2>
+<table class="simple">
+<tr><th>Page</th><th>What you'll learn</th></tr>
+<tr><td><a href="generation.html">How the data is generated</a></td>
+<td>The world model step by step — archetypes, event timing, latent episodes, fraud injection,
+labels — with the statistics (lognormal, point processes, Zipf) explained from scratch.</td></tr>
+<tr><td><a href="concepts.html">Concept catalog</a></td>
+<td>All 86 concepts in boxed cards: definition, fraud relevance, correlation band, and the
+legitimate "innocent twin" pathway each one gets.</td></tr>
+<tr><td><a href="interpretability.html">Making interpretability deductions</a></td>
+<td>How the answer key is computed (interventions, Shapley), what CAVs/ICS/TCAV actually do,
+and exactly which conclusions each experiment licenses.</td></tr>
+</table>
+
+<footer>conceptlab wiki · <a href="../index.html">methodology page</a> ·
+<a href="https://github.com/juliarozanova/conceptlab">source</a></footer>
+</main></body></html>

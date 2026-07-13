@@ -1,0 +1,612 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>conceptlab wiki · concept catalog</title>
+<link rel="stylesheet" href="wiki.css"></head><body><main>
+<h1>The concept catalog</h1>
+<div class="sub">Every concept the synthetic world can label — 86 concepts across five
+families. Cards marked <span class="chip impl">implemented</span> exist in fraudgen v1; the
+rest are specified in the <code>domain-concepts</code> plan.</div>
+<div class="nav">
+  <a href="index.html">Overview</a>
+  <a href="generation.html">How the data is generated</a>
+  <a class="here" href="concepts.html">Concept catalog</a>
+  <a href="interpretability.html">Making interpretability deductions</a>
+</div>
+
+<div class="callout">
+<b>How to read a card.</b> Each box gives the plain-English definition, why fraud analysts care,
+and — where it changes what we can conclude — what the concept lets us <i>test</i>. The thin red
+bar shows the <b>target correlation band</b>: how strongly this concept is allowed to co-occur
+with fraud in the generated data. The band matters because the generator also plants a
+<b>legitimate pathway</b> for every concept (shown in the footer): bursts also come from
+shopping trips, new devices also come from phone upgrades. Without those innocent twins, a
+detector for any concept would secretly just be a fraud detector — and every "concept
+explanation" would be circular.</div>
+
+<div class="statbox"><b>Stats note — "correlation" here.</b> We use correlation loosely to mean
+"how much more often this concept is true on fraud than on legitimate transactions", scaled to
+0–1. A band of 0.05–0.15 means "barely informative"; 0.7–0.9 means "almost always fraud when
+present". The point of <i>bands</i> (rather than forcing everything to zero) is realism: some
+concepts, like <code>impossible_travel</code>, really are near-proof of fraud, and a benchmark
+that pretends otherwise teaches methods the wrong lesson.</div>
+
+<h2>Transaction-intrinsic (level 0) — 32 concepts</h2>
+<p class='family-intro'>
+Row-level facts readable off a single transaction — the payment channel, the amount's shape,
+the merchant's category, the geography, and (new in this taxonomy) the <b>verification
+signals</b>: CVV, address checks, 3-D Secure, PIN, decline reason codes. These are the
+"identity concepts": each is simultaneously an input column and a concept, which is what lets
+the testbed compare input-level and concept-level attribution on the same footing.
+<br><br><b>Interpretability deduction:</b> level-0 concepts are the easy case — any method that
+can't find and rank these has no business with the harder ones. They also include deliberately
+protective (negative-attribution) and null concepts, testing that methods can say "this made
+fraud <i>less</i> likely" and "this didn't matter at all".</p>
+<div class='grid'>
+<div class="ccard">
+  <div class="head"><span class="name">card_not_present</span><span class="chip l0">L0 · row</span><span class="chip impl">implemented</span></div>
+  <div class="def">The purchase happened without the physical card — online, in-app, or by phone.</div>
+  <div class="why">CNP removes the chip/PIN safety net, so most stolen-card fraud happens here. Its CAV should be trivially findable — a good smoke test for any concept method.</div>
+  <div class="meta">corr band 0.10–0.20 · legit pathway: most online commerce<div class="corrbar" title="target fraud-correlation 0.10–0.20"><span style="left:10%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">token_wallet</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Paid via a phone wallet (Apple/Google Pay) using a device-bound token.</div>
+  <div class="why">Tokens are hard to steal, so this concept should get <i>negative</i> fraud attribution — a nice sanity check that methods can express protective concepts.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: wallet adopters<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">magstripe_fallback</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A chip card was swiped on its magnetic stripe instead of using the chip.</div>
+  <div class="why">Skimmed (counterfeit) cards can't fake the chip, so cloners force the stripe. A classic verification-evasion tell.</div>
+  <div class="meta">corr band 0.20–0.35 · legit pathway: degraded terminals<div class="corrbar" title="target fraud-correlation 0.20–0.35"><span style="left:20%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">atm_withdrawal</span><span class="chip l0">L0 · row</span><span class="chip impl">implemented</span></div>
+  <div class="def">Cash taken out at an ATM.</div>
+  <div class="why">Cash is the end of the audit trail — fraudsters convert to cash fast. But most ATM use is mundane, so attribution must depend on <i>context</i>, not the flag alone.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: normal cash use<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">moto</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A mail-order / telephone-order payment (card details read out loud).</div>
+  <div class="why">The weakest verification rail still in use; a small but real fraud channel.</div>
+  <div class="meta">corr band 0.10–0.20 · legit pathway: legacy billers<div class="corrbar" title="target fraud-correlation 0.10–0.20"><span style="left:10%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">recurring_flag</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">The network marks this as a subscription-style repeat payment.</div>
+  <div class="why">Recurring payments are pre-agreed and low-risk — another protective concept.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: subscriptions<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">micro_amount</span><span class="chip l0">L0 · row</span><span class="chip impl">implemented</span></div>
+  <div class="def">A very small payment (under ~€2).</div>
+  <div class="why">Card testers 'ping' stolen cards with tiny charges to see if they work. Legit micro-payments (parking, vending) keep this from being a pure fraud flag.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: parking, vending, app trials<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">round_amount</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A suspiciously tidy number: 50, 100, 200…</div>
+  <div class="why">Humans buying things produce messy totals; transfers, laundering and gift-card loads produce round ones.</div>
+  <div class="meta">corr band 0.05–0.15 · legit pathway: gifts, fuel presets<div class="corrbar" title="target fraud-correlation 0.05–0.15"><span style="left:5%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">just_below_limit</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">An amount just under a known authorization or step-up threshold (e.g. €498 when checks start at €500).</div>
+  <div class="why">Fraudsters <i>structure</i> amounts to stay under extra verification. Detecting this tests whether models learn thresholds — and whether numeric encodings (PLE) can even represent them.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: budget-capped shoppers (planted)<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">amount_tier_high</span><span class="chip l0">L0 · row</span><span class="chip impl">implemented</span></div>
+  <div class="def">A large payment (over ~€500).</div>
+  <div class="why">Bigger tickets, bigger losses — fraud concentrates value here. On its own it's weak; combined with novelty concepts it becomes decisive.</div>
+  <div class="meta">corr band 0.10–0.25 · legit pathway: electronics, travel, rent-like bills<div class="corrbar" title="target fraud-correlation 0.10–0.25"><span style="left:10%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">psych_price</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A retail-style price ending in .99 or .95.</div>
+  <div class="why">Real merchants price psychologically; fraudulent test amounts rarely bother. Mildly protective.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: retail pricing<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">fenceable_mcc</span><span class="chip l0">L0 · row</span><span class="chip impl">implemented</span></div>
+  <div class="def">The merchant sells easily-resellable goods (electronics, jewelry, luxury).</div>
+  <div class="why">Stolen money becomes goods that become cash. The 'cash-out' half of most stolen-card stories.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: normal shopping<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">gift_card_mcc</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A prepaid / gift-card merchant.</div>
+  <div class="why">Gift cards are near-cash with no name attached — a favorite laundering exit.</div>
+  <div class="meta">corr band 0.25–0.40 · legit pathway: gifting seasons (planted spikes)<div class="corrbar" title="target fraud-correlation 0.25–0.40"><span style="left:25%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">gambling_mcc</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A betting or casino merchant.</div>
+  <div class="why">Fast, semi-anonymous value movement; also a genuine hobby — a good medium-correlation test case.</div>
+  <div class="meta">corr band 0.10–0.25 · legit pathway: recreational bettors<div class="corrbar" title="target fraud-correlation 0.10–0.25"><span style="left:10%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">crypto_mcc</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A cryptocurrency on-ramp.</div>
+  <div class="why">Irreversible, pseudonymous — the modern cash-out. High-risk but with a real legitimate user base.</div>
+  <div class="meta">corr band 0.20–0.35 · legit pathway: crypto-active customers<div class="corrbar" title="target fraud-correlation 0.20–0.35"><span style="left:20%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">money_transfer_mcc</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A remittance or money-transfer merchant.</div>
+  <div class="why">Where laundering and mule activity route funds; also how millions send money home. Context is everything.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: remittance-sending families<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">fuel_pump_preauth</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">The pre-authorization pattern of an automated fuel dispenser.</div>
+  <div class="why">A distinctive-but-benign pattern; useful as a 'should be ignored' concept in attribution tests.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: drivers<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">digital_goods</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">In-app purchases, game credits, digital content.</div>
+  <div class="why">Instant delivery = instant loss; heavily targeted by both third- and first-party fraud.</div>
+  <div class="meta">corr band 0.10–0.20 · legit pathway: gamers, app stores<div class="corrbar" title="target fraud-correlation 0.10–0.20"><span style="left:10%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">foreign_country</span><span class="chip l0">L0 · row</span><span class="chip impl">implemented</span></div>
+  <div class="def">The merchant's country differs from the cardholder's home country.</div>
+  <div class="why">Stolen card data crosses borders in seconds; people travel more slowly. Confounded by real travel — which is exactly why the on_holiday latent exists.</div>
+  <div class="meta">corr band 0.10–0.25 · legit pathway: travel, cross-border shopping<div class="corrbar" title="target fraud-correlation 0.10–0.25"><span style="left:10%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">high_risk_corridor</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">The merchant sits in a configured high-risk country list.</div>
+  <div class="why">Mirrors real issuer country-risk rules. Tests whether attribution respects list-membership concepts.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: diaspora corridors<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">cross_border_ecom</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Online purchase from a foreign merchant.</div>
+  <div class="why">The intersection of CNP and foreign — a compound identity concept whose parts are also concepts. Can methods keep them apart?</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: global marketplaces<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">currency_foreign</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Charged in a currency other than the card's.</div>
+  <div class="why">Mostly redundant with foreign_country — deliberately so: a correlated-sibling test for CAV separation.</div>
+  <div class="meta">corr band 0.10–0.20 · legit pathway: travel, imports<div class="corrbar" title="target fraud-correlation 0.10–0.20"><span style="left:10%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">night_local</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Between midnight and 5am in the cardholder's local time.</div>
+  <div class="why">Fraud bots don't sleep, but neither do shift workers. A weak signal that must not be over-attributed.</div>
+  <div class="meta">corr band 0.05–0.15 · legit pathway: shift workers, night owls<div class="corrbar" title="target fraud-correlation 0.05–0.15"><span style="left:5%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">weekend</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Saturday or Sunday, local time.</div>
+  <div class="why">Near-zero signal by design — a null concept that any faithful method should ignore.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: everyone<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">is_declined</span><span class="chip l0">L0 · row</span><span class="chip impl">implemented</span></div>
+  <div class="def">The issuer said no.</div>
+  <div class="why">Declines trail fraud (testing, drained balances) but mostly reflect innocent problems. The <i>pattern</i> of declines matters, not the flag.</div>
+  <div class="meta">corr band 0.10–0.25 · legit pathway: insufficient funds, expired cards<div class="corrbar" title="target fraud-correlation 0.10–0.25"><span style="left:10%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">nsf_decline</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Declined for insufficient funds.</div>
+  <div class="why">The most innocent decline reason — helps methods separate decline <i>causes</i>.</div>
+  <div class="meta">corr band 0.00–0.10 · legit pathway: low balances<div class="corrbar" title="target fraud-correlation 0.00–0.10"><span style="left:0%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">do_not_honor</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Declined with the catch-all 'do not honor' code.</div>
+  <div class="why">The issuer's own risk engine already fired. Tests whether models pick up second-hand risk signals — and whether attribution notices.</div>
+  <div class="meta">corr band 0.20–0.35 · legit pathway: issuer risk rules<div class="corrbar" title="target fraud-correlation 0.20–0.35"><span style="left:20%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">cvv_failure</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">The security code on the back of the card was wrong.</div>
+  <div class="why">Data-breach card dumps often lack CVV, so fraudsters guess. One of the strongest single verification tells.</div>
+  <div class="meta">corr band 0.35–0.50 · legit pathway: typos (rare)<div class="corrbar" title="target fraud-correlation 0.35–0.50"><span style="left:35%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">avs_mismatch</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">The billing address didn't match.</div>
+  <div class="why">Stolen identities come with stale addresses. Confounded by people who move house.</div>
+  <div class="meta">corr band 0.25–0.40 · legit pathway: recent movers, typos<div class="corrbar" title="target fraud-correlation 0.25–0.40"><span style="left:25%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">three_ds_failed</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">A 3-D Secure challenge (bank app confirmation) failed or was abandoned.</div>
+  <div class="why">The cardholder's own phone says no. Strong — but abandoned checkouts are common enough to keep it honest.</div>
+  <div class="meta">corr band 0.30–0.45 · legit pathway: UX abandonment<div class="corrbar" title="target fraud-correlation 0.30–0.45"><span style="left:30%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">three_ds_frictionless</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">3DS passed without a challenge (trusted-flow exemption).</div>
+  <div class="why">Protective: the risk engine already trusted this flow.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: trusted flows<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">pin_verified</span><span class="chip l0">L0 · row</span></div>
+  <div class="def">Chip + correct PIN at a terminal.</div>
+  <div class="why">The gold standard of card verification — strongly protective, and a good 'negative attribution' test.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: POS chip+PIN<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+</div>
+<h2>Behavioral / windowed (level 1) — 17 concepts</h2>
+<p class='family-intro'>
+Patterns over the <b>recent sequence</b> — bursts, retries, escalation, novelty, and physical
+impossibilities. None of these exist in a single row; they are properties of order and timing.
+<br><br><b>Interpretability deduction:</b> these concepts separate genuinely sequential models
+from bag-of-features ones. If a method attributes a decision to <code>micro_then_large</code>,
+it is implicitly claiming the model used <i>order</i> — and because we planted the pattern, we
+can check that claim exactly.</p>
+<div class='grid'>
+<div class="ccard">
+  <div class="head"><span class="name">short_burst</span><span class="chip l1">L1 · window</span><span class="chip impl">implemented</span></div>
+  <div class="def">Several transactions squeezed into a short window.</div>
+  <div class="why">Bursts are how card-testing looks — and how a Saturday shopping trip looks. The generator plants both, so a burst CAV encodes <i>burstiness</i>, not fraud.</div>
+  <div class="meta">corr band 0.10–0.25 · legit pathway: shopping sessions, checkout retries<div class="corrbar" title="target fraud-correlation 0.10–0.25"><span style="left:10%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">rapid_fire</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">Three or more transactions less than a minute apart.</div>
+  <div class="why">Human hands don't move that fast; scripts do. Much stronger than short_burst — the pair tests whether methods track signal <i>strength</i>, not just presence.</div>
+  <div class="meta">corr band 0.30–0.50 · legit pathway: double-tap retries (rare)<div class="corrbar" title="target fraud-correlation 0.30–0.50"><span style="left:30%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">multi_merchant_burst</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">A burst spread across several different merchants.</div>
+  <div class="why">Testers rotate merchants to dodge per-merchant velocity rules; mall crawls do the same innocently.</div>
+  <div class="meta">corr band 0.25–0.40 · legit pathway: market/mall trips (planted)<div class="corrbar" title="target fraud-correlation 0.25–0.40"><span style="left:25%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">same_merchant_retry</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">Repeated attempts at one merchant within minutes.</div>
+  <div class="why">Usually a failed payment being retried; occasionally a fraudster hammering one door.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: payment retries<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">escalating_amounts</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">Amounts climbing steadily within a session.</div>
+  <div class="why">Fraudsters probe upward to find the card's ceiling.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: upsell funnels (weak, planted)<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">amount_stepping_down</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">A decline followed by a smaller retry.</div>
+  <div class="why">Balance probing: 'no to €500? try €300.' The temporal <i>order</i> matters — a genuine test of sequence models over bag-of-features ones.</div>
+  <div class="meta">corr band 0.30–0.50 · legit pathway: honest balance guessing (rare)<div class="corrbar" title="target fraud-correlation 0.30–0.50"><span style="left:30%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">micro_then_large</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">A tiny payment followed shortly by one 20× bigger.</div>
+  <div class="why">The classic test-then-cash-out signature in miniature. Order-dependent, window-dependent — exactly what attention should catch.</div>
+  <div class="meta">corr band 0.40–0.60 · legit pathway: trial-then-subscribe (weak)<div class="corrbar" title="target fraud-correlation 0.40–0.60"><span style="left:40%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">new_merchant</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">First time this customer visits this merchant.</div>
+  <div class="why">Almost everyone shops somewhere new sometimes — near-null alone, decisive in combination.</div>
+  <div class="meta">corr band 0.00–0.10 · legit pathway: exploration<div class="corrbar" title="target fraud-correlation 0.00–0.10"><span style="left:0%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">new_mcc</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">First purchase ever in this merchant category.</div>
+  <div class="why">Life changes and gifts produce these innocently; account takeover produces them in clusters.</div>
+  <div class="meta">corr band 0.05–0.15 · legit pathway: life changes<div class="corrbar" title="target fraud-correlation 0.05–0.15"><span style="left:5%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">new_country</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">First transaction ever in this country.</div>
+  <div class="why">First trips happen — but paired with other novelty concepts it's an ATO cornerstone.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: first trips<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">new_device</span><span class="chip l1">L1 · window</span><span class="chip impl">implemented</span></div>
+  <div class="def">A device never seen on this account before.</div>
+  <div class="why">The single loudest ATO alarm. The generator plants routine phone upgrades so its CAV stays honest.</div>
+  <div class="meta">corr band 0.20–0.35 · legit pathway: phone upgrades (planted churn)<div class="corrbar" title="target fraud-correlation 0.20–0.35"><span style="left:20%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">new_ip_subnet</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">Connection from an unfamiliar network block.</div>
+  <div class="why">Credential thieves connect from their networks, not yours. VPNs and ISP churn provide the innocent path.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: ISP churn, VPNs<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">first_cnp_after_pos_history</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">A card that has only ever been used in person suddenly appears online.</div>
+  <div class="why">Stolen card numbers surface online even when the plastic never left the wallet. A beautiful long-history concept: invisible to short-window models.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: first online purchase<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">impossible_travel</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">Two in-person transactions whose locations couldn't be reached at any sane speed.</div>
+  <div class="why">Physics as a fraud rule. Deliberately near-pure (corr 0.7–0.9): the benchmark needs at least one concept where high attribution is simply <i>correct</i>.</div>
+  <div class="meta">corr band 0.70–0.90 · legit pathway: (almost none — by design)<div class="corrbar" title="target fraud-correlation 0.70–0.90"><span style="left:70%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">atm_after_foreign_pos</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">Cash withdrawal shortly after a foreign in-person purchase.</div>
+  <div class="why">A cash-out chaser following a counterfeit purchase; also just… travelers needing cash.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: travel cash<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">dormancy_break</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">First activity after 30+ silent days.</div>
+  <div class="why">Fraudsters love forgotten cards — nobody is watching the statements. Returning travelers and seasonal cards keep it honest.</div>
+  <div class="meta">corr band 0.10–0.25 · legit pathway: seasonal use, returns from abroad<div class="corrbar" title="target fraud-correlation 0.10–0.25"><span style="left:10%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">velocity_spike</span><span class="chip l1">L1 · window</span></div>
+  <div class="def">Spending rate far above this customer's own baseline.</div>
+  <div class="why">Everything about this concept is <i>relative to personal history</i> — it cannot be computed from one event, making it a pure test of history-aware models.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: holidays, emergencies<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+</div>
+<h2>Entity-history & latent-state (level 2) — 19 concepts</h2>
+<p class='family-intro'>
+Deviations from an entity's <b>own long-run profile</b> (customer, merchant, or device), plus
+concepts that are really <b>latent world-states</b> the generator knows about (travel episodes,
+life events, merchant breaches). Latents deserve special attention: <code>on_holiday</code> is
+not computable from any row — it is a hidden cause. The generator exports it as truth and can
+<i>re-simulate the world with it switched off</i> (a counterfactual), which is how we measure
+its real causal effect.
+<br><br><b>Interpretability deduction:</b> this family carries the confounding tests. Travel
+<i>causes</i> foreign, unusual-looking activity without causing fraud; a faithful method must
+attribute fraud decisions to the fraud-causing concepts and not the innocent latent riding
+alongside them.</p>
+<div class='grid'>
+<div class="ccard">
+  <div class="head"><span class="name">amount_z_extreme</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">An amount more than 3 'personal standard deviations' above this customer's usual.</div>
+  <div class="why">Not 'is €800 a lot?' but 'is €800 a lot *for Maria*?' Tests whether models build per-entity baselines — and whether attribution credits the deviation, not the raw amount.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: big-ticket life purchases<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">unusual_mcc_for_customer</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">A category this customer essentially never shops in.</div>
+  <div class="why">A vegetarian's card buying at a steakhouse. Personal-profile deviation, long-horizon by nature.</div>
+  <div class="meta">corr band 0.10–0.20 · legit pathway: gifts, exploration<div class="corrbar" title="target fraud-correlation 0.10–0.20"><span style="left:10%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">unusual_hour_for_customer</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">Activity at an hour this customer is normally silent.</div>
+  <div class="why">Same idea, time-of-day edition. Weak alone; a brick in the ATO wall.</div>
+  <div class="meta">corr band 0.10–0.20 · legit pathway: schedule changes<div class="corrbar" title="target fraud-correlation 0.10–0.20"><span style="left:10%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">unusual_country</span><span class="chip l2">L2 · history/latent</span><span class="chip impl">implemented</span></div>
+  <div class="def">A country outside this customer's whole geographic history.</div>
+  <div class="why">The distributional version of new_country: not just 'first time' but 'far outside the pattern'.</div>
+  <div class="meta">corr band 0.30–0.50 · legit pathway: genuinely rare trips<div class="corrbar" title="target fraud-correlation 0.30–0.50"><span style="left:30%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">on_holiday</span><span class="chip l2">L2 · history/latent</span><span class="chip impl">implemented</span></div>
+  <div class="def">The customer's travel episode latent is active — the <i>generator knows</i> they're traveling.</div>
+  <div class="why">The flagship confounder: travel explains away foreign/unusual activity. A faithful method must give it ~0 fraud attribution even though it co-occurs with scary-looking concepts.</div>
+  <div class="meta">corr band 0.00–0.10 · legit pathway: vacations (latent EPISODE)<div class="corrbar" title="target fraud-correlation 0.00–0.10"><span style="left:0%;width:10%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">life_event_shift</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">A latent life change (move, new job) shifting the whole spending distribution.</div>
+  <div class="why">Innocent distribution shift — the stress test for every 'deviation from baseline' concept above.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: real life events (latent)<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">seasonal_peak</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">A seasonal spending latent (December, sales events) is active.</div>
+  <div class="why">Everyone's velocity spikes together in December; models must not read the season as an attack.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: holidays (latent)<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">payday_window</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">Within a few days after the salary lands.</div>
+  <div class="why">Spending rhythms follow paydays; a benign periodic structure sequence models should absorb.</div>
+  <div class="meta">corr band 0.00–0.05 · legit pathway: payday cycles<div class="corrbar" title="target fraud-correlation 0.00–0.05"><span style="left:0%;width:5%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">account_young</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">The account is less than ~60 days old.</div>
+  <div class="why">Synthetic identities are always young; so is every genuine new customer. Base-rate reasoning required.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: new customers<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">credit_util_spike</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">Credit utilization jumped sharply.</div>
+  <div class="why">Bust-outs max the line before vanishing. Emergencies do too, once.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: emergencies, big purchases<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">balance_drain</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">One transaction consumes most of the available balance/limit.</div>
+  <div class="why">ATO end-game: take everything. Rent-like payments are the honest twin.</div>
+  <div class="meta">corr band 0.30–0.50 · legit pathway: rent-like payments<div class="corrbar" title="target fraud-correlation 0.30–0.50"><span style="left:30%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">spend_trend_ramp</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">Weeks-long upward trend in spending.</div>
+  <div class="why">The synthetic-identity 'nurture then bust' arc starts as a gentle, credible ramp — only visible over long horizons.</div>
+  <div class="meta">corr band 0.15–0.30 · legit pathway: income growth (planted)<div class="corrbar" title="target fraud-correlation 0.15–0.30"><span style="left:15%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">fresh_merchant</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">The merchant itself is less than ~30 days old.</div>
+  <div class="why">Fraudulent merchants are born, cash out, and die young. Every real business is also new once — merchant-side base rates.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: genuinely new businesses<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">tail_merchant</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">A merchant in the bottom decile of popularity.</div>
+  <div class="why">The long tail is where collusion hides — and where niche commerce lives. Tests merchant-embedding quality directly.</div>
+  <div class="meta">corr band 0.10–0.25 · legit pathway: niche shops<div class="corrbar" title="target fraud-correlation 0.10–0.25"><span style="left:10%;width:15%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">merchant_volume_spike</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">A merchant's own volume far above its baseline.</div>
+  <div class="why">Bust-out merchants spike before vanishing; viral products spike innocently.</div>
+  <div class="meta">corr band 0.20–0.40 · legit pathway: viral products, sales<div class="corrbar" title="target fraud-correlation 0.20–0.40"><span style="left:20%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">hot_merchant</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">The generator's per-merchant fraud-propensity latent is elevated.</div>
+  <div class="why">Some merchants really are riskier. Exported as truth so methods can be tested on second-hand (entity-level) risk concepts.</div>
+  <div class="meta">corr band 0.40–0.60 · legit pathway: mislabeled hot spots (planted noise)<div class="corrbar" title="target fraud-correlation 0.40–0.60"><span style="left:40%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">cpp_exposed</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">This card previously visited a merchant during its (latent) breach window.</div>
+  <div class="why">The common-point-of-compromise mechanism: exposure travels through a <i>shared merchant</i>, not this customer's behavior. Only merchant-aware models can even see it.</div>
+  <div class="meta">corr band 0.30–0.50 · legit pathway: most exposed cards stay clean<div class="corrbar" title="target fraud-correlation 0.30–0.50"><span style="left:30%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">device_many_cards</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">One device is associated with unusually many cards.</div>
+  <div class="why">Fraud operators run many victims from one machine; families share tablets. An entity-graph concept.</div>
+  <div class="meta">corr band 0.40–0.60 · legit pathway: families, shared tablets<div class="corrbar" title="target fraud-correlation 0.40–0.60"><span style="left:40%;width:20%"></span></div></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">shared_device_cluster</span><span class="chip l2">L2 · history/latent</span></div>
+  <div class="def">A device seen across seemingly unrelated customers.</div>
+  <div class="why">Public terminals vs. mule herders — same observable, different worlds. Great hard case.</div>
+  <div class="meta">corr band 0.30–0.50 · legit pathway: public terminals<div class="corrbar" title="target fraud-correlation 0.30–0.50"><span style="left:30%;width:20%"></span></div></div>
+</div>
+</div>
+<h2>Fraud-pattern composites (level 3a) — 7 concepts</h2>
+<p class='family-intro'>
+Named <b>combinations</b> of lower concepts — the "chords" analysts actually recognize:
+test-then-cash-out, the takeover signature, cash-conversion channels. Written in the same logic
+DSL, so their internal structure (AND vs OR) is known exactly.
+<br><br><b>Interpretability deduction:</b> compounds make credit assignment testable at depth.
+ANDs create <i>interaction</i> effects (each part is worthless alone — linear attribution
+fails); ORs create <i>overdetermination</i> (single-toggle importance collapses to zero and
+fair-share definitions like Shapley become necessary). Both failure modes are planted on
+purpose.</p>
+<div class='grid'>
+<div class="ccard">
+  <div class="head"><span class="name">test_then_cashout</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">The full card-testing arc: tiny probes (often failing CVV), then a big spend.</div>
+  <div class="why">A <i>compound</i> concept whose parts are themselves concepts. The benchmark's central question: do methods credit the compound, its parts, or double-count both?</div>
+  <div class="meta">composition: <code>micro_then_large ∧ card_not_present ∧ (cvv_failure ∨ declined in window)</code></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">enumeration_signature</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">One merchant being hammered by many cards in rapid, CVV-failing succession.</div>
+  <div class="why">Lives on the <i>merchant</i> side — invisible in any single customer's history. Separates merchant-aware architectures from customer-sequence ones.</div>
+  <div class="meta">composition: <code>many-cards-one-merchant latent ∧ rapid_fire ∧ cvv_failure</code></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">geo_takeover_signature</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">New device + unfamiliar country + failing address/3DS checks.</div>
+  <div class="why">The ATO chord: each note is weak, the chord is loud. Tests interaction-aware attribution (linear methods hear only notes).</div>
+  <div class="meta">composition: <code>new_device ∧ unusual_country ∧ (avs_mismatch ∨ three_ds_failed)</code></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">bustout_ramp</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">A young account ramping spend and utilization toward a cliff.</div>
+  <div class="why">Long-horizon compound: none of its parts fire on any single event.</div>
+  <div class="meta">composition: <code>spend_trend_ramp ∧ credit_util_spike ∧ account_young</code></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">cash_conversion</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">Any of the 'turn credit into cash' channels.</div>
+  <div class="why">A disjunction (OR) — the overdetermination generator. When two channels fire at once, single-toggle importance goes to zero and Shapley-style credit is required.</div>
+  <div class="meta">composition: <code>fenceable_mcc ∨ gift_card_mcc ∨ crypto_mcc ∨ atm_withdrawal</code></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">verification_evasion</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">Any route around strong verification.</div>
+  <div class="why">Another disjunction, verification edition.</div>
+  <div class="meta">composition: <code>magstripe_fallback ∨ three_ds_failed ∨ moto</code></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">laundering_pattern</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">Round amounts moving fast through transfer rails.</div>
+  <div class="why">A conjunction of individually-benign concepts — the anti-pattern of geo_takeover: here <i>no</i> part should get much solo credit.</div>
+  <div class="meta">composition: <code>round_amount ∧ money_transfer_mcc ∧ velocity_spike</code></div>
+</div>
+</div>
+<h2>Typologies (level 3b) — 11 concepts</h2>
+<p class='family-intro'>
+The eleven fraud <b>storylines</b> the generator can inject, each hijacking a customer's (or
+merchant's) stream. Every typology declares its <b>defining concept set</b> — the ground-truth
+answer to "why is this transaction fraud?" — which is what fraud-model explanations are graded
+against.
+<br><br><b>Interpretability deduction:</b> because different typologies use different concepts,
+no single global concept ranking can be right — explanations must be local. The typology layer
+is what turns that from an opinion into a measurable property of the benchmark.</p>
+<div class='grid'>
+<div class="ccard">
+  <div class="head"><span class="name">card_testing</span><span class="chip l3">L3 · pattern</span><span class="chip impl">implemented</span></div>
+  <div class="def">A batch of stolen card numbers being validated with rapid micro-charges.</div>
+  <div class="why">The highest-volume fraud pattern in the wild.</div>
+  <div class="meta">defining concepts: <b>rapid_fire, micro_amount, card_not_present, cvv_failure</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">enumeration_attack</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">A BIN attack: guessing card numbers in sequence against one merchant.</div>
+  <div class="why">Pure merchant-side signal — the planted reason merchant embeddings should win benchmarks.</div>
+  <div class="meta">defining concepts: <b>enumeration_signature, micro_amount</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">stolen_card_cnp</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">Validated stolen cards being cashed out online.</div>
+  <div class="why">The cash-out that follows testing; the bread-and-butter CNP fraud story.</div>
+  <div class="meta">defining concepts: <b>test_then_cashout, cash_conversion, unusual_country</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">counterfeit_pos</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">Cloned physical cards used in person after a skimming breach.</div>
+  <div class="why">The typology that <i>requires</i> CPP exposure — relational evidence across customers.</div>
+  <div class="meta">defining concepts: <b>cpp_exposed, magstripe_fallback, impossible_travel</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">lost_stolen_pos</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">A physically lost/stolen card used before the owner notices.</div>
+  <div class="why">Old-fashioned and fast: cash and goods before the freeze.</div>
+  <div class="meta">defining concepts: <b>atm_withdrawal, velocity_spike, unusual_hour_for_customer</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">account_takeover</span><span class="chip l3">L3 · pattern</span><span class="chip impl">implemented</span></div>
+  <div class="def">Credentials stolen; the attacker becomes the customer.</div>
+  <div class="why">The long-baseline typology: everything looks plausible except against months of history.</div>
+  <div class="meta">defining concepts: <b>geo_takeover_signature, new_ip_subnet, balance_drain</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">synthetic_identity_bustout</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">A fabricated identity nurtures good behavior, then maxes out and vanishes.</div>
+  <div class="why">Months of patience, one cliff — only lifetime-scale models see the shape.</div>
+  <div class="meta">defining concepts: <b>bustout_ramp, account_young, credit_util_spike</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">merchant_bustout</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">A merchant builds plausible volume, spikes with stolen-card traffic, and dies.</div>
+  <div class="why">Fraud where the <i>merchant</i> is the criminal.</div>
+  <div class="meta">defining concepts: <b>fresh_merchant, merchant_volume_spike, hot_merchant</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">transaction_laundering</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">A tail merchant washing payments for an unseen business.</div>
+  <div class="why">The quiet typology: individually boring events, collectively a pipe.</div>
+  <div class="meta">defining concepts: <b>laundering_pattern, tail_merchant</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">refund_abuse</span><span class="chip l3">L3 · pattern</span></div>
+  <div class="def">Systematic exploitation of refund flows, mostly in digital goods.</div>
+  <div class="why">First-party-adjacent: the 'customer' is real, the claims aren't.</div>
+  <div class="meta">defining concepts: <b>same_merchant_retry (refund rail), digital_goods</b></div>
+</div>
+<div class="ccard">
+  <div class="head"><span class="name">first_party_friendly</span><span class="chip l3">L3 · pattern</span><span class="chip impl">implemented</span></div>
+  <div class="def">A real customer disputing purchases they genuinely made.</div>
+  <div class="why">Behaviorally identical to innocence — <i>zero</i> defining concepts. The Bayes floor that keeps every method honest about its confidence.</div>
+  <div class="meta">defining concepts: <b>(none — undetectable by design)</b></div>
+</div>
+</div>
+
+<footer>conceptlab wiki · generated by <code>scripts/build_wiki_concepts.py</code> — edit the
+catalog there, not this file.</footer>
+</main></body></html>

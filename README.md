@@ -3,6 +3,7 @@
 A ground-truth benchmark for **validating and comparing transformer interpretability methods**.
 
 🌐 **[Methodology & live reports](https://juliarozanova.github.io/conceptlab/)** — the full write-up, plus:
+- **[The wiki](https://juliarozanova.github.io/conceptlab/wiki/index.html)** — a guided, stats-from-scratch tour of the data generation method, the 86-concept catalog (boxed cards with correlation bands and legit pathways), and how to make interpretability deductions. Start here if you're new.
 - **[Blob reports](https://juliarozanova.github.io/conceptlab/runs/index.html)** — concept *discovery* (SAEs, PCA/ICA, probes) vs planted embedding geometry.
 - **[Concept-attribution reports](https://juliarozanova.github.io/conceptlab/concept_runs/index.html)** — compositional *explanation* methods (ICS, TCAV, CAV-ablation, probe-patch) on tabular event sequences, `tabular-concepts` branch.
 - **[Fraud transfer](https://juliarozanova.github.io/conceptlab/fraud_runs/fraud_default/report.html)** — the same methods on a TabTransformer trained on synthetic fraud ([fraudgen](https://github.com/juliarozanova/fraudgen)).

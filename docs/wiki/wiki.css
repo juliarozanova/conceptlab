@@ -1,0 +1,73 @@
+/* conceptlab wiki — shared styles (light/dark aware, same palette as reports) */
+:root { color-scheme: light dark;
+  --blue:#2a78d6; --aqua:#1baf7a; --yellow:#eda100; --violet:#4a3aa7;
+  --red:#e34948; --green:#008300; --muted:#898781;
+  --bg:#f9f9f7; --ink:#0b0b0b; --ink2:#52514e; --hair:rgba(137,135,129,0.3);
+  --box:#ffffff; --wash:rgba(137,135,129,0.08); }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0d0d0d; --ink:#ffffff; --ink2:#c3c2b7; --box:#161615; } }
+
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin:0; padding:32px 20px; background:var(--bg); color:var(--ink); line-height:1.6; }
+main { max-width: 920px; margin: 0 auto; }
+h1 { font-size:26px; margin:0 0 4px; }
+h2 { font-size:19px; margin:38px 0 10px; color:var(--ink2);
+  border-bottom:1px solid var(--hair); padding-bottom:5px; }
+h3 { font-size:15.5px; margin:24px 0 6px; }
+p, li { font-size:15px; }
+.sub { color:var(--muted); font-size:14px; margin-bottom:14px; }
+code { background:var(--wash); padding:1px 5px; border-radius:4px; font-size:13px; }
+a { color:var(--blue); text-decoration:none; } a:hover { text-decoration:underline; }
+.nav { font-size:14px; margin:12px 0 24px; display:flex; flex-wrap:wrap; gap:14px; }
+.nav a { padding:4px 10px; border:1px solid var(--hair); border-radius:16px; }
+.nav a.here { border-color:var(--blue); color:var(--blue); font-weight:600; }
+
+.callout { border-left:3px solid var(--blue); background:rgba(42,120,214,0.07);
+  padding:10px 16px; border-radius:0 8px 8px 0; margin:16px 0; font-size:14px; }
+.callout.warn { border-left-color:var(--yellow); background:rgba(237,161,0,0.08); }
+.callout.deep { border-left-color:var(--violet); background:rgba(74,58,167,0.07); }
+.term { font-weight:600; }
+.aside { color:var(--ink2); font-size:13.5px; font-style:italic; }
+
+/* stats-explainer boxes */
+.statbox { border:1px solid var(--hair); border-radius:10px; background:var(--box);
+  padding:12px 16px; margin:14px 0; font-size:14px; }
+.statbox b:first-child { color:var(--violet); }
+
+/* concept cards */
+.family-intro { margin: 6px 0 14px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px; }
+.ccard { border:1px solid var(--hair); border-radius:10px; background:var(--box);
+  padding:12px 14px; font-size:13.5px; display:flex; flex-direction:column; gap:6px; }
+.ccard .head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.ccard .name { font-weight:700; font-family:ui-monospace, monospace; font-size:13px; }
+.chip { font-size:10.5px; font-weight:700; padding:1px 8px; border-radius:10px; color:#fff; }
+.chip.l0 { background:var(--blue); } .chip.l1 { background:var(--aqua); }
+.chip.l2 { background:var(--yellow); color:#1a1a19; } .chip.l3 { background:var(--violet); }
+.chip.impl { background:transparent; color:var(--green); border:1px solid var(--green); }
+.ccard .def { color:var(--ink); }
+.ccard .why { color:var(--ink2); }
+.ccard .why b { color:var(--ink); font-weight:600; }
+.ccard .meta { color:var(--muted); font-size:12px; margin-top:auto; padding-top:4px;
+  border-top:1px dashed var(--hair); }
+.corrbar { height:6px; border-radius:3px; background:var(--wash); position:relative; }
+.corrbar span { position:absolute; top:0; bottom:0; border-radius:3px; background:var(--red); opacity:.75; }
+
+/* diagrams */
+figure { margin:18px 0; text-align:center; }
+figure svg { max-width:100%; height:auto; }
+figcaption { color:var(--muted); font-size:13px; margin-top:6px; }
+.dg-box { fill:var(--box); stroke:var(--muted); stroke-width:1.2; rx:8; }
+.dg-t { fill:var(--ink); font:600 13px system-ui, sans-serif; }
+.dg-s { fill:var(--ink2); font:12px system-ui, sans-serif; }
+.dg-m { fill:var(--muted); font:11px system-ui, sans-serif; }
+.dg-arrow { stroke:var(--muted); stroke-width:1.6; fill:none; marker-end:url(#arr); }
+.dg-arrow.hot { stroke:var(--red); }
+.dg-arrow.cool { stroke:var(--blue); }
+
+footer { margin-top:48px; color:var(--muted); font-size:13px;
+  border-top:1px solid var(--hair); padding-top:14px; }
+table.simple { border-collapse:collapse; font-size:13.5px; width:100%; }
+table.simple th, table.simple td { text-align:left; padding:6px 10px;
+  border-bottom:1px solid var(--hair); vertical-align:top; }
+table.simple th { color:var(--muted); }

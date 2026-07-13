@@ -1,0 +1,194 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>conceptlab wiki · how the data is generated</title>
+<link rel="stylesheet" href="wiki.css"></head><body><main>
+<h1>How the data is generated</h1>
+<div class="sub">From an empty world to labeled transactions, one layer at a time. No statistics
+background assumed — every distribution gets a plain-language box.</div>
+<div class="nav">
+  <a href="index.html">Overview</a>
+  <a class="here" href="generation.html">How the data is generated</a>
+  <a href="concepts.html">Concept catalog</a>
+  <a href="interpretability.html">Making interpretability deductions</a>
+</div>
+
+<h2>Layer 1 — a world of entities</h2>
+<p>
+Before any transaction exists, the generator creates the cast: <b>customers</b>, <b>merchants</b>,
+<b>cards</b>, and <b>devices</b>. Each customer is drawn from a behavioral
+<span class="term">archetype</span> — "urban commuter", "online-heavy shopper", "light cash user"
+— which sets their typical spending amounts, favorite merchant categories, how often they
+transact, and their home country. Archetypes are then individually jittered so no two customers
+are identical: think of an archetype as a recipe and each customer as one cook's version of it.
+</p>
+<div class="statbox"><b>Stats box — the lognormal distribution.</b> Purchase amounts follow a
+<i>lognormal</i>: most purchases are small, a few are large, and none are negative. The easiest
+way to picture it: take ordinary bell-curve randomness, then exponentiate it. Coffee-sized
+amounts are common, laptop-sized amounts are rare, yacht-sized amounts are very rare — but all
+possible. Each merchant category has its own version (fuel amounts cluster tightly; electronics
+spread wide).</div>
+<p>
+Merchants get a category (MCC), a country, an age, and — importantly — a <b>popularity</b>.
+Merchant popularity follows a <span class="term">Zipf</span> pattern, and the taxonomy's
+merchant-side concepts (fresh merchants, tail merchants, volume spikes) depend on it.
+</p>
+<div class="statbox"><b>Stats box — Zipf's law.</b> A few merchants are enormous (everyone shops
+there), and there is a very long tail of tiny ones. Concretely: the 2nd most popular merchant
+gets about half the traffic of the 1st, the 10th about a tenth. Real payment data looks exactly
+like this, and it matters for modelling: a model must learn good representations for merchants
+it has seen thousands of times <i>and</i> merchants it has seen twice.</div>
+
+<h2>Layer 2 — events on a timeline</h2>
+<p>
+Each customer emits transactions over a simulated timeline. <i>When</i> they transact is as
+informative as <i>what</i> they buy, so timing is modeled carefully: people shop more at midday
+and on weekends, more right after payday, and — crucially — in <b>sessions</b>: one purchase
+makes another purchase in the next few minutes more likely (you're at the shops already).
+</p>
+<div class="statbox"><b>Stats box — point processes and "bursty" time.</b> A
+<i>point process</i> is just a recipe for sprinkling events along a timeline. The simplest
+(a Poisson process) sprinkles them independently at some rate. Ours varies that rate by hour,
+weekday and payday (a <i>non-homogeneous</i> process) and adds
+<i>self-excitement</i> (a Hawkes process): each event temporarily raises the rate, producing
+natural clusters. This is why the gaps between transactions have a heavy-tailed, clumpy look —
+and why "burst" concepts need planted innocent explanations, because the legitimate world bursts
+all by itself.</div>
+
+<h3>Latent episodes — the world's hidden switches</h3>
+<p>
+On top of the baseline rhythm, each customer carries a set of <span class="term">latent
+episode</span> variables — hidden on/off switches the generator flips over time:
+<code>on_trip</code> (travel: purchases shift to a foreign country), <code>life_event</code>
+(a move or new job shifts the whole spending profile), <code>seasonal_peak</code> (December
+happens to everyone). Merchants have latents too: a breach window (cards visiting during it
+become <code>cpp_exposed</code>) and a fraud-propensity level.
+</p>
+<figure>
+<svg viewBox="0 0 900 170" role="img" aria-label="A customer timeline with latent episodes">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#898781"/></marker></defs>
+<line x1="30" y1="90" x2="870" y2="90" stroke="#898781" stroke-width="1.5"/>
+<text class="dg-m" x="30" y="110">time →</text>
+<!-- events -->
+<g fill="#2a78d6">
+<circle cx="70" cy="90" r="4"/><circle cx="110" cy="90" r="4"/><circle cx="180" cy="90" r="4"/>
+<circle cx="260" cy="90" r="4"/><circle cx="285" cy="90" r="4"/><circle cx="300" cy="90" r="4"/>
+<circle cx="312" cy="90" r="4"/><circle cx="420" cy="90" r="4"/><circle cx="500" cy="90" r="4"/>
+<circle cx="540" cy="90" r="4"/><circle cx="560" cy="90" r="4"/><circle cx="700" cy="90" r="4"/>
+<circle cx="820" cy="90" r="4"/>
+</g>
+<!-- travel band -->
+<rect x="480" y="70" width="130" height="40" fill="rgba(27,175,122,0.18)" rx="6"/>
+<text class="dg-s" x="545" y="60" text-anchor="middle" fill="#1baf7a">on_trip = 1</text>
+<!-- session brace -->
+<path d="M255,112 Q285,130 317,112" stroke="#898781" fill="none" stroke-width="1.2"/>
+<text class="dg-m" x="286" y="145" text-anchor="middle">a shopping session (Hawkes burst)</text>
+<!-- fraud hijack -->
+<g fill="#e34948"><circle cx="740" cy="90" r="4"/><circle cx="752" cy="90" r="4"/><circle cx="764" cy="90" r="4"/><circle cx="790" cy="90" r="5"/></g>
+<path d="M735,112 Q765,130 795,112" stroke="#e34948" fill="none" stroke-width="1.2"/>
+<text class="dg-m" x="768" y="145" text-anchor="middle" fill="#e34948">campaign hijack: card testing → cash-out</text>
+</svg>
+<figcaption>One customer's stream. Blue dots are legitimate events (note the natural session);
+the green band is a latent travel episode (purchases inside it look foreign — innocently); red
+is a fraud campaign splicing itself into the tail.</figcaption>
+</figure>
+<div class="callout deep">
+<b>Why latents matter so much for interpretability.</b> A latent like <code>on_trip</code> is a
+<i>hidden common cause</i>: it makes <code>foreign_country</code>, <code>new_country</code> and
+<code>velocity_spike</code> all fire at once — with zero fraud. Any explanation method that sees
+those surface features co-occurring with fraud (in other customers) and attributes a traveler's
+flagged payment to "being abroad" is confusing correlation with causation. The generator knows
+the truth, so we can catch it doing that.
+</div>
+
+<h2>Layer 3 — the authorization micro-model</h2>
+<p>
+Real payment systems answer back: approved or declined, address check passed or failed, 3-D
+Secure challenged or waived. These <b>verification signals</b> are among the strongest features
+real fraud models use, so the generator simulates a small issuer rule stack: balances can be
+insufficient (innocent declines), stolen-card attempts fail CVV checks more often, takeovers
+trip address verification, and step-up rules create the thresholds that
+<code>just_below_limit</code> structuring dances under. Each outcome is written into the event
+row — and each becomes a level-0 concept in the <a href="concepts.html">catalog</a>.
+</p>
+
+<h2>Layer 4 — fraud campaigns</h2>
+<p>
+Fraud is injected as <span class="term">campaigns</span>: an operator with a typology (a
+storyline — see the <a href="concepts.html">catalog's level-3b family</a>) hijacks a customer,
+card, or merchant and rewrites part of their stream. Card testing splices a rapid run of
+micro-charges; an account takeover adds a new device, a foreign IP and an escalating drain;
+a merchant bust-out inflates a young merchant's volume before it vanishes. Crucially the
+campaign <b>interleaves with the victim's ongoing legitimate activity</b> — fraud rides on top
+of real life, exactly as in production data.
+</p>
+<p>
+Every campaign records its <b>defining concept set</b> — the concepts that constitute its
+story. This is the per-event answer key: on a card-testing event, the correct explanation cites
+<code>rapid_fire</code>, <code>micro_amount</code>, <code>card_not_present</code>,
+<code>cvv_failure</code> — and does <i>not</i> cite <code>on_holiday</code>.
+</p>
+
+<h2>Layer 5 — labels, delays, and honest noise</h2>
+<p>
+In reality nobody stamps "FRAUD" on a transaction at authorization time. Fraud is discovered
+when the cardholder disputes it — weeks later — and some fraud is never reported at all. The
+generator reproduces this: a <b>reporting delay</b> (typically ~25 days, sometimes months), a
+slice of fraud that never gets a label, and both <code>label_reported</code> (what a production
+model would train on) and <code>label_true</code> (the answer key) in the exports. Models that
+ignore this — training on labels that wouldn't have existed yet — get quietly optimistic
+results; the testbed makes that mistake visible.
+</p>
+
+<h2 id="counterfactuals">Replayable randomness and counterfactuals</h2>
+<p>
+The generator's most important engineering property: <b>every random draw is addressable</b>.
+Each amount, each merchant choice, each timing gap is produced by a random generator keyed by
+<code>(seed, customer, column, event)</code>. Ask for the same key, get the same draw — which
+means we can regenerate any customer's history <i>with one thing changed</i> and everything
+else identical.
+</p>
+<figure>
+<svg viewBox="0 0 900 210" role="img" aria-label="Counterfactual resimulation">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#898781"/></marker></defs>
+<text class="dg-t" x="30" y="40">Factual world</text>
+<line x1="30" y1="70" x2="640" y2="70" stroke="#898781" stroke-width="1.5"/>
+<g fill="#2a78d6"><circle cx="80" cy="70" r="4"/><circle cx="150" cy="70" r="4"/><circle cx="230" cy="70" r="4"/><circle cx="330" cy="70" r="4"/><circle cx="420" cy="70" r="4"/><circle cx="560" cy="70" r="4"/></g>
+<rect x="300" y="52" width="180" height="36" fill="rgba(27,175,122,0.18)" rx="6"/>
+<text class="dg-m" x="390" y="45" text-anchor="middle" fill="#1baf7a">on_trip = 1 → foreign purchases</text>
+<rect class="dg-box" x="680" y="45" width="190" height="50" rx="8"/>
+<text class="dg-s" x="775" y="66" text-anchor="middle">model output:</text>
+<text class="dg-t" x="775" y="84" text-anchor="middle">P(fraud) = 0.71</text>
+<path class="dg-arrow" d="M640,70 L678,70"/>
+
+<text class="dg-t" x="30" y="140">Counterfactual: same keys, trip switched off</text>
+<line x1="30" y1="170" x2="640" y2="170" stroke="#898781" stroke-width="1.5"/>
+<g fill="#2a78d6"><circle cx="80" cy="170" r="4"/><circle cx="150" cy="170" r="4"/><circle cx="230" cy="170" r="4"/><circle cx="330" cy="170" r="4"/><circle cx="420" cy="170" r="4"/><circle cx="560" cy="170" r="4"/></g>
+<text class="dg-m" x="390" y="152" text-anchor="middle">same times, same amounts — home country now</text>
+<rect class="dg-box" x="680" y="145" width="190" height="50" rx="8"/>
+<text class="dg-s" x="775" y="166" text-anchor="middle">model output:</text>
+<text class="dg-t" x="775" y="184" text-anchor="middle">P(fraud) = 0.09</text>
+<path class="dg-arrow" d="M640,170 L678,170"/>
+</svg>
+<figcaption>Toggling one latent while replaying every other random draw. The output difference
+(0.71 → 0.09) is the <i>causal effect of the trip on this model's decision</i> — measured, not
+estimated. This is what attribution methods are trying to approximate.</figcaption>
+</figure>
+<div class="statbox"><b>Stats box — what "counterfactual" buys us.</b> Comparing travelers to
+non-travelers (correlation) confuses the trip's effect with everything else that differs between
+those people. Re-running <i>the same person's</i> history with only the trip removed isolates the
+trip's effect exactly. Real data can never do this — you can't re-live a customer's month. A
+generator can, and that single capability is why the answer key is causal rather than
+correlational.</div>
+
+<h2>Scale, briefly</h2>
+<p>
+For the explainability suite, thousands of sequences suffice. For comparing serious sequence
+models (causal TabBERT variants at ~20M parameters), the <code>domain-concepts</code> plan
+targets ~50M events over 200K customers with variable histories of 64–512 events and a
+100K–1M-merchant universe — big enough that architectural choices (how history is compressed,
+how merchant identity is embedded) genuinely separate. Same world, two sampling modes: balanced
+windows for explanation grading, the raw firehose for pretraining.
+</p>
+
+<footer>conceptlab wiki · next: <a href="concepts.html">the concept catalog</a></footer>
+</main></body></html>
