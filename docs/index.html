@@ -345,15 +345,21 @@ attribution, so "method failed" and "concept absent" are never confused.</li>
 <p>
 The point of all this is to trust explanations where there is no ground truth. The bridge is a
 synthetic fraud generator (<a href="https://github.com/juliarozanova/fraudgen">fraudgen</a>) that
-plants labeled typologies — card-testing bursts, foreign cash-out, account takeover, and
-behaviorally-normal first-party fraud — each with a known <em>defining concept set</em> ("why this
-transaction is fraud"). It exports the same data contract the concept suite consumes, so a method
-validated above runs unchanged on a TabTransformer trained on fraud, graded against those defining
+plants seven labeled typologies — card testing, BIN enumeration, stolen-card cash-out, account
+takeover, counterfeit POS, lost/stolen POS, and behaviorally-normal first-party fraud — over a
+28-concept world that includes the verification signals real fraud teams rely on (CVV, address,
+3-D&nbsp;Secure, PIN, decline codes). Every concept is generated inside a
+<a href="wiki/concepts.html">target correlation band</a> with a legitimate "innocent twin"
+pathway, and every fraud event carries a <em>defining concept set</em> ("why this transaction is
+fraud"). It exports the same data contract the concept suite consumes, so a method validated above
+runs unchanged on a TabTransformer trained on fraud (AUC ≈ 0.96), graded against those defining
 concepts. The <a href="fraud_runs/fraud_default/report.html">fraud transfer report</a> shows:
 </p>
 <ul>
-<li><strong>Per-typology, the causal methods find the right concepts</strong> (rank-AUC up to 0.76
-on account-takeover) — the fraud-relevant, actionable result.</li>
+<li><strong>Per-typology, the causal methods find the right concepts</strong> (rank-AUC ~0.8 on
+card-testing and enumeration, tracking how decodable each typology's concepts are) — the
+fraud-relevant, actionable result. TCAV over-attributes to nearly every concept and is the clear
+laggard.</li>
 <li><strong>Global concept attribution is ill-posed for heterogeneous fraud.</strong> Because
 different typologies are driven by different concepts, no single global concept ranking is correct
 — a mean over all fraud events blends incompatible explanations to near-zero correlation. The

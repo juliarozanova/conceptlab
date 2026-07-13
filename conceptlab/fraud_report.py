@@ -70,10 +70,21 @@ def write_fraud_report(agg: dict, out_dir: Path) -> Path:
         f"<tr><td class='name'>{t}</td><td>{', '.join(cs) if cs else '<i>none (Bayes floor)</i>'}</td></tr>"
         for t, cs in defn.items())
 
+    # data-driven headline sentence for the per-typology note
+    hit = agg["per_typology_hit"]
+    ics_scores = {t: d["ics"] for t, d in hit.items() if d and d.get("ics") == d.get("ics")}
+    headline = ""
+    if ics_scores:
+        best = max(ics_scores, key=ics_scores.get)
+        worst = min(ics_scores, key=ics_scores.get)
+        headline = (f"Here ICS/CAV-ablation are strongest on <b>{best}</b> "
+                    f"({ics_scores[best]:.2f}) and weakest on <b>{worst}</b> "
+                    f"({ics_scores[worst]:.2f}).")
+
     html = _TEMPLATE.format(
         name=agg["name"], auc=f"{agg['model_auc']:.3f}", n=agg["n"],
         runtime=agg["runtime_s"], n_concepts=len(names),
-        scorecard=_scorecard(agg["methods"]), defn_rows=defn_rows,
+        scorecard=_scorecard(agg["methods"]), defn_rows=defn_rows, headline=headline,
         fig_bars=fig_bars, fig_hit=fig_hit, fig_audit=fig_audit,
     ).replace("%%CSS%%", _CSS)
     path = out_dir / "report.html"
@@ -105,9 +116,11 @@ concepts and not at correlated-but-noncausal ones (e.g. on_holiday).</p>
 <p class="card-note">Rank-AUC of each method's concept ranking against each typology's defining set.
 1.0 = the method ranks exactly that typology's concepts on top. This is the meaningful view for
 fraud: the causal methods (ICS, CAV-ablation, probe-patch) recover the right concepts per
-typology — strongest on account-takeover (device/geo deviation, cleanly decodable), weaker on
-card-testing (bursts are only ~0.8 decodable, see audit). TCAV is consistently worst. first_party
-has no defining concepts (undetectable — the Bayes floor) and is omitted.</p>
+typology, and their strength tracks how decodable those concepts are in the model (see the audit
+below). {headline} TCAV is the outlier — it over-attributes to nearly every concept (see the bar
+chart: its bars dominate regardless of ground truth), so its rankings are weak and its global ρ
+can even go negative. first_party has no defining concepts (undetectable — the Bayes floor) and
+is omitted.</p>
 {fig_hit}
 
 <h2>Global attribution is ill-posed for heterogeneous fraud</h2>
