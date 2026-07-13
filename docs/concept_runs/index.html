@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>conceptlab · concept runs</title><style>
+:root { color-scheme: light dark; }
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  margin: 0; padding: 32px; background: #f9f9f7; color: #0b0b0b; line-height: 1.5; }
+h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 32px 0 8px;
+  color: #52514e; border-bottom: 1px solid rgba(137,135,129,0.3); padding-bottom: 4px; }
+.sub { color: #898781; font-size: 13px; margin-bottom: 8px; }
+code { background: rgba(137,135,129,0.15); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.meta { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: #52514e; margin: 12px 0; }
+.meta b { color: #0b0b0b; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid rgba(137,135,129,0.2); }
+th { color: #898781; font-weight: 600; } td.name, th.name { text-align: left; }
+td.name { font-weight: 600; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.card-note { color: #898781; font-size: 12px; margin: 2px 0 0; }
+@media (prefers-color-scheme: dark) {
+  body { background: #0d0d0d; color: #fff; } h2 { color: #c3c2b7; }
+  .meta { color: #c3c2b7; } .meta b { color: #fff; } td.name { color: #fff; }
+}
+@media (max-width: 780px) { .grid2 { grid-template-columns: 1fr; } }
+.card { display:block; text-decoration:none; color:inherit; padding:16px 18px;
+  border:1px solid rgba(137,135,129,0.3); border-radius:10px; margin:10px 0; }
+.card:hover { border-color:#2a78d6; }
+.ct { font-weight:700; font-size:16px; } .cs { color:#898781; font-size:13px; margin:2px 0; }
+.cm { color:#52514e; font-size:13px; }
+@media (prefers-color-scheme: dark) { .cm { color:#c3c2b7; } }
+</style></head><body>
+<h1>conceptlab — concept attribution runs</h1>
+<div class="sub">Compositional interpretability vs known ground truth.
+&nbsp;·&nbsp; <a href="../index.html">methodology</a></div>
+<a class='card' href='tab_compound/report.html'><div class='ct'>tab_compound</div><div class='cs'>Compound concepts vs their constituents: label = (burst AND cnp) OR (foreign AND amount>500). Tests separating a compound typology…</div><div class='cm'>mode A 0.91 · mode B 0.92 · def-gap 0.11</div></a>
+<a class='card' href='tab_correlated/report.html'><div class='ct'>tab_correlated</div><div class='cs'>CAV confounding: on_holiday is correlated with fraud (trips raise the amount that drives the label) but is NOT causal. A faithful …</div><div class='cm'>mode A 1.00 · mode B 0.97 · def-gap 0.00</div></a>
+<a class='card' href='tab_overdetermined/report.html'><div class='ct'>tab_overdetermined</div><div class='cs'>Redundant causes: label = amount>500 OR cnp OR foreign. Interventional and Shapley ground truth disagree (large definition gap); b…</div><div class='cm'>mode A 1.00 · mode B 0.99 · def-gap 0.00</div></a>
+</body></html>

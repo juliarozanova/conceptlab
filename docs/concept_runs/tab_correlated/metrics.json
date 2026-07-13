@@ -1,0 +1,182 @@
+{
+  "name": "tab_correlated",
+  "description": "CAV confounding: on_holiday is correlated with fraud (trips raise the amount that drives the label) but is NOT causal. A faithful method must not attribute the decision to it \u2014 the failure mode that motivates decorrelated controls.",
+  "concept_names": [
+    "amount_gt",
+    "cnp",
+    "on_holiday"
+  ],
+  "support_mask": [
+    true,
+    true,
+    false
+  ],
+  "gt_interventional": [
+    0.3393333333333333,
+    0.3253333333333333,
+    0.0
+  ],
+  "gt_shapley": [
+    0.054,
+    0.054,
+    0.0
+  ],
+  "definition_gap": 0.0,
+  "modeA_val_acc": 0.998,
+  "modeB_val_acc": 0.9673333466053009,
+  "modeA_scores": {
+    "ics": {
+      "rho_interventional": 1.0,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.01856759303989406,
+      "pivotal_gate": 0.003964661154896021,
+      "per_concept": [
+        0.10478243976831436,
+        0.10420828312635422,
+        0.0037422622554004192
+      ]
+    },
+    "tcav": {
+      "rho_interventional": 0.0,
+      "rho_shapley": 0.0,
+      "support_leakage": 0.33333333333322224,
+      "pivotal_gate": 1.0,
+      "per_concept": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "cav_ablation": {
+      "rho_interventional": 1.0,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.01910722743581833,
+      "pivotal_gate": 0.003961378708481789,
+      "per_concept": [
+        0.10168608278036118,
+        0.10102856159210205,
+        0.0037392200902104378
+      ]
+    },
+    "probe_patch": {
+      "rho_interventional": 1.0,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.014614871314395072,
+      "pivotal_gate": 0.009158529341220856,
+      "per_concept": [
+        0.3147534728050232,
+        0.30092331767082214,
+        0.00863411370664835
+      ]
+    },
+    "cav_skyline": {
+      "rho_interventional": 0.5,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.027900458041162562,
+      "pivotal_gate": 0.0059892230201512575,
+      "per_concept": [
+        0.10399619489908218,
+        0.10414137691259384,
+        0.006366063840687275
+      ]
+    }
+  },
+  "modeB_scores": {
+    "ics": {
+      "rho_interventional": 0.5,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.010729050906029124,
+      "pivotal_gate": 0.001078469242202118,
+      "per_concept": [
+        0.10986547917127609,
+        0.14124280214309692,
+        0.0019995870534330606
+      ]
+    },
+    "tcav": {
+      "rho_interventional": 0.25,
+      "rho_shapley": 0.43301270189221935,
+      "support_leakage": 0.23121649859151916,
+      "pivotal_gate": 0.19066666666666676,
+      "per_concept": [
+        0.9986666666666666,
+        0.6026666666666667,
+        0.029333333333333433
+      ]
+    },
+    "cav_ablation": {
+      "rho_interventional": 0.5,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.00993162105746708,
+      "pivotal_gate": 0.0010455485025886446,
+      "per_concept": [
+        0.11344567686319351,
+        0.15974825620651245,
+        0.001933486433699727
+      ]
+    },
+    "probe_patch": {
+      "rho_interventional": 0.5,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.004979801782459393,
+      "pivotal_gate": 0.0008267058874480426,
+      "per_concept": [
+        0.2255084216594696,
+        0.38110047578811646,
+        0.0010443789651617408
+      ]
+    },
+    "input_agg": {
+      "rho_interventional": 0.5,
+      "rho_shapley": 0.8660254037844387,
+      "support_leakage": 0.0,
+      "pivotal_gate": 0.0,
+      "per_concept": [
+        0.1279340237379074,
+        0.21699842810630798,
+        0.0
+      ]
+    }
+  },
+  "audit": {
+    "hookpoints": [
+      "embed",
+      "resid_post_L0",
+      "resid_post_L1",
+      "pooled"
+    ],
+    "auc": {
+      "embed": [
+        1.0,
+        1.0,
+        0.8430780167051715
+      ],
+      "resid_post_L0": [
+        1.0,
+        1.0,
+        0.8566858767676255
+      ],
+      "resid_post_L1": [
+        0.9995493871665465,
+        1.0,
+        0.8603163319708548
+      ],
+      "pooled": [
+        0.9992564888248017,
+        1.0,
+        0.8583614714768083
+      ]
+    },
+    "best_auc": [
+      1.0,
+      1.0,
+      0.8603163319708548
+    ]
+  },
+  "seeds": [
+    0,
+    1
+  ],
+  "tau": 0.1,
+  "runtime_s": 50.3
+}

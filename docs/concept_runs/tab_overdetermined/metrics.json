@@ -1,0 +1,201 @@
+{
+  "name": "tab_overdetermined",
+  "description": "Redundant causes: label = amount>500 OR cnp OR foreign. Interventional and Shapley ground truth disagree (large definition gap); both are shown and single-concept toggling is often inert where the label is jointly satisfied.",
+  "concept_names": [
+    "amount_gt",
+    "cnp",
+    "foreign",
+    "on_holiday"
+  ],
+  "support_mask": [
+    true,
+    true,
+    true,
+    false
+  ],
+  "gt_interventional": [
+    0.29533333333333334,
+    0.25666666666666665,
+    0.38466666666666666,
+    0.0
+  ],
+  "gt_shapley": [
+    0.25922222222222224,
+    0.2008888888888889,
+    0.3712222222222222,
+    0.0
+  ],
+  "definition_gap": 0.0,
+  "modeA_val_acc": 0.9963333333333333,
+  "modeB_val_acc": 0.992000013589859,
+  "modeA_scores": {
+    "ics": {
+      "rho_interventional": 1.0,
+      "rho_shapley": 1.0,
+      "support_leakage": 0.0050439113237080255,
+      "pivotal_gate": 0.0020287688239477575,
+      "per_concept": [
+        0.12508292496204376,
+        0.08054699748754501,
+        0.19986428320407867,
+        0.0019187958678230643
+      ]
+    },
+    "tcav": {
+      "rho_interventional": 0.0,
+      "rho_shapley": 0.0,
+      "support_leakage": 0.2499999999999375,
+      "pivotal_gate": 1.0,
+      "per_concept": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "cav_ablation": {
+      "rho_interventional": 1.0,
+      "rho_shapley": 1.0,
+      "support_leakage": 0.00494023940557492,
+      "pivotal_gate": 0.00202771567273885,
+      "per_concept": [
+        0.12643302977085114,
+        0.08214634656906128,
+        0.2044452279806137,
+        0.001917804591357708
+      ]
+    },
+    "probe_patch": {
+      "rho_interventional": 1.0,
+      "rho_shapley": 1.0,
+      "support_leakage": 0.008998433551351683,
+      "pivotal_gate": 0.00786633975803852,
+      "per_concept": [
+        0.27608025074005127,
+        0.23900586366653442,
+        0.3620057702064514,
+        0.007446126081049442
+      ]
+    },
+    "cav_skyline": {
+      "rho_interventional": 1.0,
+      "rho_shapley": 1.0,
+      "support_leakage": 0.005668967362011006,
+      "pivotal_gate": 0.0022636677604168653,
+      "per_concept": [
+        0.12403583526611328,
+        0.0805162787437439,
+        0.19808682799339294,
+        0.002133718691766262
+      ]
+    }
+  },
+  "modeB_scores": {
+    "ics": {
+      "rho_interventional": 0.39999999999999997,
+      "rho_shapley": 0.39999999999999997,
+      "support_leakage": 0.010221553304259022,
+      "pivotal_gate": 0.00013901050988351926,
+      "per_concept": [
+        0.009555304422974586,
+        0.0036949061322957277,
+        0.001721167704090476,
+        0.0001741000742185861
+      ]
+    },
+    "tcav": {
+      "rho_interventional": -0.7999999999999999,
+      "rho_shapley": -0.7999999999999999,
+      "support_leakage": 0.6042211325122837,
+      "pivotal_gate": 0.778,
+      "per_concept": [
+        0.04266666666666663,
+        0.29466666666666663,
+        0.2506666666666666,
+        0.6373333333333333
+      ]
+    },
+    "cav_ablation": {
+      "rho_interventional": 0.39999999999999997,
+      "rho_shapley": 0.39999999999999997,
+      "support_leakage": 0.010579319019488984,
+      "pivotal_gate": 0.0001390166398778092,
+      "per_concept": [
+        0.008422697894275188,
+        0.0038140693213790655,
+        0.0017480570822954178,
+        0.00017409749852959067
+      ]
+    },
+    "probe_patch": {
+      "rho_interventional": 0.7999999999999999,
+      "rho_shapley": 0.7999999999999999,
+      "support_leakage": 0.005410391084235565,
+      "pivotal_gate": 0.00028737684624502435,
+      "per_concept": [
+        0.014006772078573704,
+        0.041678544133901596,
+        0.06596464663743973,
+        0.0003767694579437375
+      ]
+    },
+    "input_agg": {
+      "rho_interventional": 0.7999999999999999,
+      "rho_shapley": 0.7999999999999999,
+      "support_leakage": 0.0,
+      "pivotal_gate": 0.0,
+      "per_concept": [
+        0.11285509914159775,
+        0.1168234720826149,
+        0.19443677365779877,
+        0.0
+      ]
+    }
+  },
+  "audit": {
+    "hookpoints": [
+      "embed",
+      "resid_post_L0",
+      "resid_post_L1",
+      "pooled"
+    ],
+    "auc": {
+      "embed": [
+        0.9997394580727914,
+        1.0,
+        1.0,
+        0.5646523076923078
+      ],
+      "resid_post_L0": [
+        0.9988576238576239,
+        1.0,
+        1.0,
+        0.60352
+      ],
+      "resid_post_L1": [
+        0.998697290363957,
+        1.0,
+        1.0,
+        0.6045292307692307
+      ],
+      "pooled": [
+        0.9952501202501203,
+        1.0,
+        1.0,
+        0.6103138461538462
+      ]
+    },
+    "best_auc": [
+      0.9997394580727914,
+      1.0,
+      1.0,
+      0.6103138461538462
+    ]
+  },
+  "seeds": [
+    0,
+    1
+  ],
+  "tau": 0.1,
+  "runtime_s": 54.7
+}
