@@ -2,7 +2,10 @@
 
 A ground-truth benchmark for **validating and comparing transformer interpretability methods**.
 
-🌐 **[Live reports on GitHub Pages](https://juliarozanova.github.io/conceptlab/runs/index.html)** — cross-run comparison, easy_blobs, superposition_xor, circle_transformer.
+🌐 **[Methodology & live reports](https://juliarozanova.github.io/conceptlab/)** — the full write-up, plus:
+- **[Blob reports](https://juliarozanova.github.io/conceptlab/runs/index.html)** — concept *discovery* (SAEs, PCA/ICA, probes) vs planted embedding geometry.
+- **[Concept-attribution reports](https://juliarozanova.github.io/conceptlab/concept_runs/index.html)** — compositional *explanation* methods (ICS, TCAV, CAV-ablation, probe-patch) on tabular event sequences, `tabular-concepts` branch.
+- **[Fraud transfer](https://juliarozanova.github.io/conceptlab/fraud_runs/fraud_default/report.html)** — the same methods on a TabTransformer trained on synthetic fraud ([fraudgen](https://github.com/juliarozanova/fraudgen)).
 
 Real-model interpretability has no ground truth — "did the SAE find the *real* features?" is unanswerable. `conceptlab` sidesteps this by generating synthetic data where the concepts, their geometry, and their causal importance for the label are **known by construction**. Interpretability methods are then scored on how well they
 
