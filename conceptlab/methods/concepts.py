@@ -137,6 +137,7 @@ class ICS(ConceptMethod):
         acts = adapter.decision_acts(batch)
         K = len(cavs)
         out = np.zeros(K)
+        per_ex = np.zeros((acts.shape[0], K))
         for k in range(K):
             v = cavs[k]
             if not np.any(v):
@@ -151,7 +152,9 @@ class ICS(ConceptMethod):
                 _, grad = adapter.logit_and_grad(batch, delta)
                 grad_accum = grad_accum + (grad @ vt)
             ig = coef * (grad_accum / self.steps)
+            per_ex[:, k] = ig.abs().numpy()
             out[k] = ig.abs().mean().item()
+        self.last_per_example = per_ex          # (N, K) local attributions
         return out
 
 
@@ -186,6 +189,7 @@ class CAVAblation(ConceptMethod):
         base = torch.softmax(adapter.logit_perturbed(batch, torch.zeros(acts.shape)), -1)[:, 1]
         K = len(cavs)
         out = np.zeros(K)
+        per_ex = np.zeros((acts.shape[0], K))
         for k in range(K):
             v = cavs[k]
             if not np.any(v):
@@ -194,7 +198,9 @@ class CAVAblation(ConceptMethod):
             coef = torch.tensor(acts @ v, dtype=torch.float32)
             delta = (-coef).unsqueeze(1) * vt                 # remove the component
             p = torch.softmax(adapter.logit_perturbed(batch, delta), -1)[:, 1]
+            per_ex[:, k] = (p - base).abs().numpy()
             out[k] = (p - base).abs().mean().item()
+        self.last_per_example = per_ex
         return out
 
 
@@ -211,6 +217,7 @@ class ProbePatch(ConceptMethod):
         base = torch.softmax(adapter.logit_perturbed(batch, torch.zeros(acts.shape)), -1)[:, 1]
         K = len(cavs)
         out = np.zeros(K)
+        per_ex = np.zeros((acts.shape[0], K))
         for k in range(K):
             v = cavs[k]
             if not np.any(v):
@@ -222,7 +229,9 @@ class ProbePatch(ConceptMethod):
             vt = torch.tensor(v, dtype=torch.float32)
             delta = torch.tensor(target - proj, dtype=torch.float32).unsqueeze(1) * vt
             p = torch.softmax(adapter.logit_perturbed(batch, delta), -1)[:, 1]
+            per_ex[:, k] = (p - base).abs().numpy()
             out[k] = (p - base).abs().mean().item()
+        self.last_per_example = per_ex
         return out
 
 

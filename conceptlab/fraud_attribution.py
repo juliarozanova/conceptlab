@@ -117,6 +117,29 @@ def run_fraud_attribution(contract_path: str | Path, out_dir: str | Path,
         attr = M.attribute(ad, fraud_batch, cavs)
         methods[M.name] = _grade(M.name, attr, gt_global).__dict__
 
+    # ---- case explorer: top-N model-scored events, local drill-down --------
+    from .case_explorer import build_cases
+    with torch.no_grad():
+        p_te = torch.softmax(model(te_batch), -1)[:, 1].numpy()
+    # top-15 overall plus the 5 highest-scored *false positives* — the model's
+    # confident mistakes are the most instructive explanation cases.
+    top_all = np.argsort(-p_te)
+    top15 = top_all[:15]
+    fp_order = top_all[y_te[top_all] == 0]
+    top_fp = np.array([i for i in fp_order if i not in set(top15)][:5], dtype=int)
+    top_local = np.concatenate([top15, top_fp]) if len(top_fp) else top15
+    top_local = top_local[np.argsort(-p_te[top_local])]
+    case_batch = _index(te_batch, top_local)
+    per_example = {}
+    for M in [ICS(steps=10), CAVAblation(), ProbePatch()]:
+        M.attribute(ad, case_batch, cavs)
+        per_example[M.name] = M.last_per_example
+    cases_payload = build_cases(
+        model, ds, te=te[top_local], p_scores=p_te[top_local], cavs=cavs, layer=0,
+        method_per_example=per_example,
+        concept_input_deps=ds.concept_input_deps or {},
+        codebooks=ds.codebooks or {}, n_cases=len(top_local))
+
     # per-typology hit-rate: does the method rank defining concepts above others
     # on that typology's fraud events? uses per-concept global attribution as the
     # ranking (a global explanation) scored against each typology's defining set.
@@ -147,6 +170,7 @@ def run_fraud_attribution(contract_path: str | Path, out_dir: str | Path,
     out_dir.mkdir(parents=True, exist_ok=True)
     import json
     (out_dir / "metrics.json").write_text(json.dumps(agg, indent=2))
+    agg["cases"] = cases_payload           # embedded in the report, not metrics.json
     write_fraud_report(agg, out_dir)
     return agg
 

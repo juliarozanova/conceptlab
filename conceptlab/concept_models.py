@@ -153,6 +153,36 @@ class TabTransformer(nn.Module):
         h = torch.cat(fields, dim=-1)                  # (B,T,n_fields*field_dim)
         return self.fuse(h)                            # (B,T,d_model)
 
+    def embed_fields(self, num: dict, cat: dict) -> dict:
+        """Per-field embeddings (each (B, T, field_dim)), in model field order.
+
+        The differentiable surface for input-level attribution: categorical codes
+        have no continuous path, but their embeddings do — IG interpolates here.
+        """
+        out = {}
+        for c in self.numeric_cols:
+            x = num[c].unsqueeze(-1)
+            b1, b2 = self.num_knots[c]
+            ple = torch.cat([x, F.relu(x - b1), F.relu(x - b2)], dim=-1)
+            out[c] = self.num_proj[c](ple)
+        for c in self.categorical_cols:
+            out[c] = self.cat_emb[c](cat[c])
+        return out
+
+    def acts_from_field_embeddings(self, field_embs: dict, layer: int) -> torch.Tensor:
+        """Residual-stream activation at ``resid_post_L{layer}``, decision position,
+        computed from (possibly grad-enabled / interpolated) field embeddings."""
+        fields = [field_embs[c] for c in self.numeric_cols + self.categorical_cols]
+        h = self.fuse(torch.cat(fields, dim=-1))
+        B, T, _ = h.shape
+        h = h + self.pos[:, :T, :]
+        mask = torch.triu(torch.ones(T, T, dtype=torch.bool), diagonal=1)
+        for i, blk in enumerate(self.blocks):
+            h = blk(h, attn_mask=mask)
+            if i == layer:
+                return h[:, -1, :]
+        return h[:, -1, :]
+
     def logit_from_inputs(self, num: dict, cat: dict) -> torch.Tensor:
         """Differentiable forward from explicit numeric tensors (for input-level
         attribution). ``num`` values are torch tensors (grad-enabled by caller);

@@ -370,6 +370,12 @@ a production incident.</li>
 legitimate windows too (correlation with fraud near zero by construction), so their CAVs encode the
 concept rather than the label — without which every concept detector would secretly be a fraud
 detector.</li>
+<li><strong>A case explorer for individual decisions.</strong> The report's final section lists the
+model's most confident fraud calls (true positives and its confident <em>mistakes</em>, badged),
+each opening per-concept local attributions next to the ground truth — and each concept opens an
+input-cell heatmap (IG vs the concept probe, toggleable to occlusion) side by side with the cells
+the concept's definition actually reads. Deep-linkable, e.g.
+<a href="fraud_runs/fraud_default/report.html#case=0&amp;concept=cvv_failure">#case=0&amp;concept=cvv_failure</a>.</li>
 </ul>
 <p class="card-note">Caveat, stated plainly: fraudgen is a v1 with fixed-window sequences and a
 handful of typologies; it is a controlled transfer rung, not a claim about production fraud. What

@@ -32,6 +32,8 @@ class ContractDataset:
     attribution_gt: np.ndarray   # (N, K) 1 where concept defines this event's label
     typology_defining: dict
     seq_len: int
+    concept_input_deps: dict = None   # concept -> [(field, scope)] (nullable)
+    codebooks: dict = None            # field -> {code: label} (nullable)
 
     def event_batch(self) -> EventBatch:
         return EventBatch(self.numeric, self.categorical, latents={}, decision=-1)
@@ -74,4 +76,6 @@ def load_contract(path: str | Path) -> ContractDataset:
     return ContractDataset(numeric=numeric, categorical=categorical, concept_names=names,
                            C=C, concept_levels=levels, y=y, typology=typ,
                            attribution_gt=attribution,
-                           typology_defining=graph.get("typology_defining", {}), seq_len=T)
+                           typology_defining=graph.get("typology_defining", {}), seq_len=T,
+                           concept_input_deps=graph.get("concept_input_deps") or {},
+                           codebooks=graph.get("codebooks") or {})

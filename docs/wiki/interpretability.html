@@ -175,6 +175,17 @@ method must look in the right place). Rule of thumb for reading reports: <i>attr
 are only as strong as the audit row above them</i>.
 </p>
 
+<div class="callout">
+<b>Drill into single decisions.</b> The fraud report ends with a <i>case explorer</i>: the model's
+most confident fraud calls (including its confident mistakes, badged FP). Click a case → its
+per-concept local attributions appear next to the ground-truth table; click a concept → a heatmap
+over the raw event window shows which input <i>cells</i> influence that concept in the model
+(integrated gradients against the concept's probe, toggleable to cell occlusion), side by side
+with the cells the concept's definition actually reads. It is the same three-way comparison as
+everywhere else in conceptlab — method vs model vs ground truth — but at the resolution where a
+fraud analyst actually works: one transaction, one explanation.
+</div>
+
 <h2>Which deductions are licensed?</h2>
 <table class="simple">
 <tr><th>If you observe…</th><th>You may conclude…</th><th>You may NOT conclude…</th></tr>
