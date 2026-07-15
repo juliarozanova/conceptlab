@@ -492,6 +492,49 @@ class ConceptGraph:
             "input_columns": self.input_columns(),
         }
 
+    # -- human-readable definitions ------------------------------------------
+    def expr_str(self, name: str) -> str:
+        """Readable definition of a concept (e.g. ``(short_burst ∧ cnp)``)."""
+        return _node_str(self.concepts[name].expr)
+
+    def label_str(self) -> str:
+        """Readable definition of the label expression over concepts."""
+        return _node_str(self.label)
+
+    def structural_export(self) -> dict:
+        """JSON-safe structure for the causal diagram.
+
+        Nodes: input columns, concepts (with level, support flag, definition
+        string, inputs), and the label. Edges: input→concept, concept→concept
+        (references), and concept→label — the pure-mediation chain drawn out.
+        """
+        support = set(self.transitive_support())
+        label_refs = list(self.label_support_concepts())
+        concepts = []
+        edges = []
+        for c in self.concepts.values():
+            child_refs = _refs_in(c.expr)                 # concept→concept edges
+            concepts.append({
+                "name": c.name, "level": c.level,
+                "support": c.name in support,
+                "expr": _node_str(c.expr),
+                "inputs": sorted(c.expr.inputs(self)),
+                "refs": child_refs,
+            })
+            for col in sorted(c.expr.inputs(self)):
+                edges.append({"src": col, "dst": c.name, "kind": "input"})
+            for r in child_refs:
+                edges.append({"src": r, "dst": c.name, "kind": "concept"})
+        for r in label_refs:
+            edges.append({"src": r, "dst": "__label__", "kind": "label"})
+        return {
+            "input_columns": self.input_columns(),
+            "concepts": concepts,
+            "label_refs": label_refs,
+            "label_expr": self.label_str(),
+            "edges": edges,
+        }
+
 
 def _refs_in(node: Node) -> list[str]:
     out: list[str] = []
@@ -501,3 +544,21 @@ def _refs_in(node: Node) -> list[str]:
         for c in node.children:
             out += _refs_in(c)
     return out
+
+
+_OP_GLYPH = {"AND": " ∧ ", "OR": " ∨ ", "XOR": " ⊕ "}
+
+
+def _node_str(node: Node) -> str:
+    """Render an expression node as a compact readable string."""
+    if isinstance(node, Leaf):
+        return node.atom.name
+    if isinstance(node, Ref):
+        return node.ref
+    if isinstance(node, BoolOp):
+        if node.op == "NOT":
+            return f"¬{_node_str(node.children[0])}"
+        inner = _OP_GLYPH.get(node.op, f" {node.op} ").join(
+            _node_str(c) for c in node.children)
+        return f"({inner})"
+    return "?"

@@ -20,6 +20,21 @@ def _unit(a):
     return a / (np.linalg.norm(a, axis=1, keepdims=True) + 1e-12)
 
 
+def _model_p(model, batch) -> np.ndarray:
+    import torch
+    with torch.no_grad():
+        return torch.softmax(model(batch), -1)[:, 1].numpy()
+
+
+def _grab_per_example(M):
+    """Return a method's (N, K) local attributions if it exposes them."""
+    if hasattr(M, "last_per_example"):
+        return M.last_per_example
+    if hasattr(M, "ics") and hasattr(M.ics, "last_per_example"):   # CAVSkyline wraps ICS
+        return M.ics.last_per_example
+    return None
+
+
 def _run_mode_a(tr, va, gt, cfg: ConceptConfig) -> dict:
     model = fit_soft_logic(tr, tau=cfg.tau)
     import torch
@@ -29,12 +44,16 @@ def _run_mode_a(tr, va, gt, cfg: ConceptConfig) -> dict:
     acts = ad.decision_acts(va.batch)
     cavs = np.stack([fit_cav(acts, va.C[:, k]) for k in range(tr.graph.n_concepts)])
     true_cavs = _unit(tr.anchors)
-    scores = {}
+    scores, per_example = {}, {}
     for M in [ICS(), TCAV(), CAVAblation(), ProbePatch(), CAVSkyline()]:
         arg = true_cavs if M.name == "cav_skyline" else cavs
         attr = M.attribute(ad, va.batch, arg)
         scores[M.name] = score_method(M.name, attr, gt).__dict__
-    return {"val_acc": acc, "hookpoint": "rep", "scores": scores}
+        pe = _grab_per_example(M)
+        if pe is not None:
+            per_example[M.name] = pe
+    return {"val_acc": acc, "hookpoint": "rep", "scores": scores,
+            "model": model, "per_example": per_example, "p": _model_p(model, va.batch)}
 
 
 def _run_mode_b(tr, va, gt, cfg: ConceptConfig, seed: int) -> dict:
@@ -44,15 +63,19 @@ def _run_mode_b(tr, va, gt, cfg: ConceptConfig, seed: int) -> dict:
     ad = ModelAdapter(res.model, "resid_post_L0")
     acts = ad.decision_acts(va.batch)
     cavs = np.stack([fit_cav(acts, va.C[:, k]) for k in range(tr.graph.n_concepts)])
-    scores = {}
+    scores, per_example = {}, {}
     for M in [ICS(), TCAV(), CAVAblation(), ProbePatch()]:
         attr = M.attribute(ad, va.batch, cavs)
         scores[M.name] = score_method(M.name, attr, gt).__dict__
+        pe = _grab_per_example(M)
+        if pe is not None:
+            per_example[M.name] = pe
     # input_agg uses the DAG directly (mode-independent reference)
     ia = InputAgg(tr.graph, va)
     scores["input_agg"] = score_method("input_agg", ia.attribute(ad, va.batch, cavs), gt).__dict__
     return {"val_acc": res.val_acc, "hookpoint": "resid_post_L0",
-            "scores": scores, "audit": audit}
+            "scores": scores, "audit": audit,
+            "model": res.model, "per_example": per_example, "p": _model_p(res.model, va.batch)}
 
 
 def run_concept_experiment(cfg: ConceptConfig, out_dir: str | Path) -> dict:
@@ -78,6 +101,10 @@ def run_concept_experiment(cfg: ConceptConfig, out_dir: str | Path) -> dict:
     agg["runtime_s"] = round(time.time() - t0, 1)
     with open(out_dir / "metrics.json", "w") as f:
         json.dump(_json_safe(agg), f, indent=2)
+    # case explorer + causal graph are embedded in the report only (not metrics)
+    from .concept_cases import build_concept_cases
+    agg["cases"] = build_concept_cases(
+        first["tr"].graph, first["va"], first["gt"], first["modeA"], first["modeB"])
     write_concept_report(agg, first, cfg, out_dir)
     return agg
 
@@ -95,10 +122,13 @@ def _aggregate(per_seed, cfg) -> dict:
             out[m]["per_concept"] = per_seed[0][mode]["scores"][m]["per_concept"]
         return out
 
+    graph = per_seed[0]["tr"].graph
     return {
         "name": cfg.name,
         "description": cfg.description,
         "concept_names": names,
+        "graph": graph.structural_export(),
+        "concept_levels": {c.name: c.level for c in graph.concepts.values()},
         "support_mask": [bool(x) for x in gt0.support_mask],
         "gt_interventional": [float(x) for x in gt0.interventional],
         "gt_shapley": [float(x) for x in gt0.shapley],

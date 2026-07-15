@@ -6,6 +6,82 @@
     "cnp",
     "on_holiday"
   ],
+  "graph": {
+    "input_columns": [
+      "amount",
+      "channel",
+      "on_trip"
+    ],
+    "concepts": [
+      {
+        "name": "amount_gt",
+        "level": 0,
+        "support": true,
+        "expr": "amount>5",
+        "inputs": [
+          "amount"
+        ],
+        "refs": []
+      },
+      {
+        "name": "cnp",
+        "level": 0,
+        "support": true,
+        "expr": "cnp",
+        "inputs": [
+          "channel"
+        ],
+        "refs": []
+      },
+      {
+        "name": "on_holiday",
+        "level": 1,
+        "support": false,
+        "expr": "on_holiday",
+        "inputs": [
+          "on_trip"
+        ],
+        "refs": []
+      }
+    ],
+    "label_refs": [
+      "amount_gt",
+      "cnp"
+    ],
+    "label_expr": "(amount_gt \u2227 cnp)",
+    "edges": [
+      {
+        "src": "amount",
+        "dst": "amount_gt",
+        "kind": "input"
+      },
+      {
+        "src": "channel",
+        "dst": "cnp",
+        "kind": "input"
+      },
+      {
+        "src": "on_trip",
+        "dst": "on_holiday",
+        "kind": "input"
+      },
+      {
+        "src": "amount_gt",
+        "dst": "__label__",
+        "kind": "label"
+      },
+      {
+        "src": "cnp",
+        "dst": "__label__",
+        "kind": "label"
+      }
+    ]
+  },
+  "concept_levels": {
+    "amount_gt": 0,
+    "cnp": 0,
+    "on_holiday": 1
+  },
   "support_mask": [
     true,
     true,
@@ -23,17 +99,17 @@
   ],
   "definition_gap": 0.0,
   "modeA_val_acc": 0.998,
-  "modeB_val_acc": 0.9673333466053009,
+  "modeB_val_acc": 0.9943333268165588,
   "modeA_scores": {
     "ics": {
       "rho_interventional": 1.0,
       "rho_shapley": 0.8660254037844387,
-      "support_leakage": 0.01856759303989406,
-      "pivotal_gate": 0.003964661154896021,
+      "support_leakage": 0.018567585817636303,
+      "pivotal_gate": 0.003964659641496837,
       "per_concept": [
         0.10478243976831436,
         0.10420828312635422,
-        0.0037422622554004192
+        0.003742264350876212
       ]
     },
     "tcav": {
@@ -50,80 +126,80 @@
     "cav_ablation": {
       "rho_interventional": 1.0,
       "rho_shapley": 0.8660254037844387,
-      "support_leakage": 0.01910722743581833,
-      "pivotal_gate": 0.003961378708481789,
+      "support_leakage": 0.019107208615720857,
+      "pivotal_gate": 0.003961374633945525,
       "per_concept": [
-        0.10168608278036118,
-        0.10102856159210205,
-        0.0037392200902104378
+        0.10168610513210297,
+        0.10102854669094086,
+        0.0037392189260572195
       ]
     },
     "probe_patch": {
       "rho_interventional": 1.0,
       "rho_shapley": 0.8660254037844387,
-      "support_leakage": 0.014614871314395072,
-      "pivotal_gate": 0.009158529341220856,
+      "support_leakage": 0.014614865842841005,
+      "pivotal_gate": 0.009158525615930557,
       "per_concept": [
         0.3147534728050232,
-        0.30092331767082214,
-        0.00863411370664835
+        0.30092328786849976,
+        0.008634118363261223
       ]
     },
     "cav_skyline": {
       "rho_interventional": 0.5,
       "rho_shapley": 0.8660254037844387,
-      "support_leakage": 0.027900458041162562,
-      "pivotal_gate": 0.0059892230201512575,
+      "support_leakage": 0.027900461216056403,
+      "pivotal_gate": 0.0059892237186431885,
       "per_concept": [
         0.10399619489908218,
         0.10414137691259384,
-        0.006366063840687275
+        0.006366061978042126
       ]
     }
   },
   "modeB_scores": {
     "ics": {
-      "rho_interventional": 0.5,
+      "rho_interventional": 0.75,
       "rho_shapley": 0.8660254037844387,
-      "support_leakage": 0.010729050906029124,
-      "pivotal_gate": 0.001078469242202118,
+      "support_leakage": 0.040871453243134945,
+      "pivotal_gate": 0.00045381968084257096,
       "per_concept": [
-        0.10986547917127609,
-        0.14124280214309692,
-        0.0019995870534330606
+        0.03258860483765602,
+        0.018977852538228035,
+        0.0003581689961720258
       ]
     },
     "tcav": {
-      "rho_interventional": 0.25,
+      "rho_interventional": 0.5,
       "rho_shapley": 0.43301270189221935,
-      "support_leakage": 0.23121649859151916,
-      "pivotal_gate": 0.19066666666666676,
+      "support_leakage": 0.26868425184461575,
+      "pivotal_gate": 0.28,
       "per_concept": [
-        0.9986666666666666,
-        0.6026666666666667,
-        0.029333333333333433
+        0.7053333333333334,
+        0.03600000000000003,
+        0.28800000000000003
       ]
     },
     "cav_ablation": {
-      "rho_interventional": 0.5,
+      "rho_interventional": 0.75,
       "rho_shapley": 0.8660254037844387,
-      "support_leakage": 0.00993162105746708,
-      "pivotal_gate": 0.0010455485025886446,
+      "support_leakage": 0.0382893754505181,
+      "pivotal_gate": 0.00045467616291716695,
       "per_concept": [
-        0.11344567686319351,
-        0.15974825620651245,
-        0.001933486433699727
+        0.03391679376363754,
+        0.024300310760736465,
+        0.00036109169013798237
       ]
     },
     "probe_patch": {
       "rho_interventional": 0.5,
       "rho_shapley": 0.8660254037844387,
-      "support_leakage": 0.004979801782459393,
-      "pivotal_gate": 0.0008267058874480426,
+      "support_leakage": 0.007307444494979725,
+      "pivotal_gate": 0.0010973011085297912,
       "per_concept": [
-        0.2255084216594696,
-        0.38110047578811646,
-        0.0010443789651617408
+        0.08180926740169525,
+        0.18856371939182281,
+        0.0014757029712200165
       ]
     },
     "input_agg": {
@@ -132,8 +208,8 @@
       "support_leakage": 0.0,
       "pivotal_gate": 0.0,
       "per_concept": [
-        0.1279340237379074,
-        0.21699842810630798,
+        0.12174445390701294,
+        0.14406974613666534,
         0.0
       ]
     }
@@ -149,28 +225,28 @@
       "embed": [
         1.0,
         1.0,
-        0.8430780167051715
+        0.8432811190941634
       ],
       "resid_post_L0": [
+        0.9996169790915644,
         1.0,
-        1.0,
-        0.8566858767676255
+        0.8481809642285918
       ],
       "resid_post_L1": [
-        0.9995493871665465,
+        0.9995944484498919,
         1.0,
-        0.8603163319708548
+        0.8567112645662495
       ],
       "pooled": [
-        0.9992564888248017,
+        0.9993240807498198,
         1.0,
-        0.8583614714768083
+        0.8568889791566172
       ]
     },
     "best_auc": [
       1.0,
       1.0,
-      0.8603163319708548
+      0.8568889791566172
     ]
   },
   "seeds": [
@@ -178,5 +254,5 @@
     1
   ],
   "tau": 0.1,
-  "runtime_s": 50.3
+  "runtime_s": 62.2
 }
